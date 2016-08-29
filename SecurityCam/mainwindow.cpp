@@ -24,6 +24,7 @@
 #include "mainwindow.hpp"
 #include "cfg.hpp"
 #include "options.hpp"
+#include "frames.hpp"
 
 // QtConfFile include.
 #include <QtConfFile/Utils>
@@ -37,10 +38,10 @@
 #include <QMenuBar>
 #include <QAction>
 #include <QCamera>
+#include <QMediaRecorder>
 #include <QApplication>
 #include <QCloseEvent>
-
-#include <QDebug>
+#include <QCameraInfo>
 
 
 namespace SecurityCam {
@@ -53,6 +54,9 @@ class MainWindowPrivate {
 public:
 	MainWindowPrivate( MainWindow * parent, const QString & cfgFileName )
 		:	m_sysTray( Q_NULLPTR )
+		,	m_cam( Q_NULLPTR )
+		,	m_rec( Q_NULLPTR )
+		,	m_frames( Q_NULLPTR )
 		,	m_cfgFileName( cfgFileName )
 		,	q( parent )
 	{
@@ -73,6 +77,12 @@ public:
 
 	//! System tray icon.
 	QSystemTrayIcon * m_sysTray;
+	//! Camera.
+	QCamera * m_cam;
+	//! Recorder.
+	QMediaRecorder * m_rec;
+	//! Surface.
+	Frames * m_frames;
 	//! Configuration.
 	Cfg::Cfg m_cfg;
 	//! Cfg file.
@@ -130,7 +140,38 @@ MainWindowPrivate::readCfg()
 void
 MainWindowPrivate::initCamera()
 {
+	if( !m_cfg.camera().isEmpty() )
+	{
+		auto infos = QCameraInfo::availableCameras();
 
+		if( !infos.isEmpty() )
+		{
+			QCameraInfo info;
+
+			foreach( auto & i, infos )
+			{
+				if( i.deviceName() == m_cfg.camera() )
+				{
+					info = i;
+
+					break;
+				}
+			}
+
+			if( !info.isNull() )
+			{
+				m_cam = new QCamera( info, q );
+
+				m_cam->setViewfinder( m_frames );
+
+				m_rec = new QMediaRecorder( m_cam, q );
+
+				m_cam->setCaptureMode( QCamera::CaptureVideo );
+
+				m_cam->start();
+			}
+		}
+	}
 }
 
 void
@@ -173,6 +214,8 @@ MainWindowPrivate::initUi()
 
 		m_sysTray->show();
 	}
+
+	m_frames = new Frames( q );
 }
 
 void
@@ -202,7 +245,24 @@ MainWindowPrivate::saveCfg()
 void
 MainWindowPrivate::stopCamera()
 {
+	if( m_rec )
+		m_rec->stop();
 
+	if( m_cam )
+	{
+		m_cam->stop();
+
+		m_cam->deleteLater();
+
+		m_cam = Q_NULLPTR;
+	}
+
+	if( m_rec )
+	{
+		m_rec->deleteLater();
+
+		m_rec = Q_NULLPTR;
+	}
 }
 
 
@@ -237,10 +297,28 @@ MainWindow::options()
 
 	if( QDialog::Accepted == opts.exec() )
 	{
-		d->m_cfg = opts.cfg();
+		const Cfg::Cfg c = opts.cfg();
+
+		bool reinit = false;
+
+		if( d->m_cfg.camera() != c.camera() )
+			reinit = true;
+
+		d->m_cfg = c;
+
+		if( reinit )
+		{
+			d->stopCamera();
+
+			d->initCamera();
+		}
 	}
 	else if( d->m_cfg.camera().isEmpty() )
+	{
 		d->m_cfg = opts.cfg();
+
+		d->initCamera();
+	}
 }
 
 void
