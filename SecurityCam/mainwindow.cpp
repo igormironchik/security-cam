@@ -23,6 +23,7 @@
 // SecurityCam include.
 #include "mainwindow.hpp"
 #include "cfg.hpp"
+#include "options.hpp"
 
 // QtConfFile include.
 #include <QtConfFile/Utils>
@@ -232,7 +233,14 @@ MainWindow::quit()
 void
 MainWindow::options()
 {
+	Options opts( d->m_cfg, this );
 
+	if( QDialog::Accepted == opts.exec() )
+	{
+		d->m_cfg = opts.cfg();
+	}
+	else if( d->m_cfg.camera().isEmpty() )
+		d->m_cfg = opts.cfg();
 }
 
 void

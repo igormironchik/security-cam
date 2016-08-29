@@ -14,6 +14,11 @@
 					{name camera}
 					{required}
 				}
+
+				{tagScalar
+					{valueType QString}
+					{name folder}
+				}
 			}
 
 		} || namespace Cfg

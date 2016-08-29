@@ -2,7 +2,7 @@
 TEMPLATE = app
 DESTDIR = ..
 TARGET = SecurityCam.App
-QT += core gui widgets multimedia xml
+QT += core gui widgets multimedia xml multimediawidgets
 
 TO_GENERATE = cfg.qtconf
 
@@ -28,10 +28,14 @@ win32 {
 }
 
 HEADERS = mainwindow.hpp \
-	$$GENERATED
+	$$GENERATED \
+    options.hpp \
+    frames.hpp
 
 SOURCES = main.cpp \
-	mainwindow.cpp
+	mainwindow.cpp \
+    options.cpp \
+    frames.cpp
 	
 
 unix|win32: LIBS += -L$$OUT_PWD/../3rdparty/QtConfFile/lib/ -lQtConfFile
@@ -43,3 +47,6 @@ win32:!win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../3rdparty/QtConfFile/lib/QtConfF
 else:unix|win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../3rdparty/QtConfFile/lib/libQtConfFile.a
 
 include( ../3rdparty/QtArg/QtArg/qtarg.pri )
+
+FORMS += \
+    options.ui
