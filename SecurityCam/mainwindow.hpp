@@ -26,6 +26,7 @@
 // Qt include.
 #include <QMainWindow>
 #include <QScopedPointer>
+#include <QSystemTrayIcon>
 
 
 namespace SecurityCam {
@@ -46,7 +47,20 @@ public:
 	explicit MainWindow( const QString & cfgFileName );
 	~MainWindow();
 
+private slots:
+	//! Quit.
+	void quit();
+	//! Options.
+	void options();
+	//! System tray activated.
+	void sysTrayActivated( QSystemTrayIcon::ActivationReason reason );
+
+protected:
+	void closeEvent( QCloseEvent * e );
+
 private:
+	friend class MainWindowPrivate;
+
 	Q_DISABLE_COPY( MainWindow )
 
 	QScopedPointer< MainWindowPrivate > d;

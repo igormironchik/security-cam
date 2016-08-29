@@ -2,7 +2,7 @@
 TEMPLATE = app
 DESTDIR = ..
 TARGET = SecurityCam.App
-QT += core gui widgets multimedia xml multimediawidgets
+QT += core gui widgets multimedia xml
 
 TO_GENERATE = cfg.qtconf
 

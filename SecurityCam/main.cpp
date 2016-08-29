@@ -72,6 +72,18 @@ int main( int argc, char ** argv )
 
 	QApplication app( argc, argv );
 
+	QIcon appIcon( ":/img/icon_256x256.png" );
+	appIcon.addFile( ":/img/icon_128x128.png" );
+	appIcon.addFile( ":/img/icon_64x64.png" );
+	appIcon.addFile( ":/img/icon_48x48.png" );
+	appIcon.addFile( ":/img/icon_32x32.png" );
+	appIcon.addFile( ":/img/icon_22x22.png" );
+	appIcon.addFile( ":/img/icon_16x16.png" );
+
+	app.setWindowIcon( appIcon );
+	app.setApplicationDisplayName( QObject::tr( "SecurityCam" ) );
+	app.setApplicationName( QObject::tr( "SecurityCam" ) );
+
 	SecurityCam::MainWindow w( cfgFileName );
 	w.show();
 

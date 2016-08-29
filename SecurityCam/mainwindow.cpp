@@ -36,7 +36,10 @@
 #include <QMenuBar>
 #include <QAction>
 #include <QCamera>
-#include <QCameraViewfinder>
+#include <QApplication>
+#include <QCloseEvent>
+
+#include <QDebug>
 
 
 namespace SecurityCam {
@@ -48,7 +51,8 @@ namespace SecurityCam {
 class MainWindowPrivate {
 public:
 	MainWindowPrivate( MainWindow * parent, const QString & cfgFileName )
-		:	m_cfgFileName( cfgFileName )
+		:	m_sysTray( Q_NULLPTR )
+		,	m_cfgFileName( cfgFileName )
 		,	q( parent )
 	{
 	}
@@ -61,7 +65,13 @@ public:
 	void initCamera();
 	//! Init UI.
 	void initUi();
+	//! Save cfg.
+	void saveCfg();
+	//! Stop camera.
+	void stopCamera();
 
+	//! System tray icon.
+	QSystemTrayIcon * m_sysTray;
 	//! Configuration.
 	Cfg::Cfg m_cfg;
 	//! Cfg file.
@@ -123,6 +133,66 @@ MainWindowPrivate::initCamera()
 void
 MainWindowPrivate::initUi()
 {
+	QMenu * file = q->menuBar()->addMenu( MainWindow::tr( "&File" ) );
+
+	file->addAction( QIcon( ":/img/application-exit.png" ),
+		MainWindow::tr( "&Quit" ), q, &MainWindow::quit );
+
+	QMenu * opts = q->menuBar()->addMenu( MainWindow::tr( "&Options" ) );
+
+	opts->addAction( QIcon( ":/img/configure.png" ),
+		MainWindow::tr( "&Settings"), q, &MainWindow::options );
+
+	if( QSystemTrayIcon::isSystemTrayAvailable() )
+	{
+		m_sysTray = new QSystemTrayIcon( q );
+
+		QIcon icon( ":/img/icon_256x256.png" );
+		icon.addFile( ":/img/icon_128x128.png" );
+		icon.addFile( ":/img/icon_64x64.png" );
+		icon.addFile( ":/img/icon_48x48.png" );
+		icon.addFile( ":/img/icon_32x32.png" );
+		icon.addFile( ":/img/icon_22x22.png" );
+		icon.addFile( ":/img/icon_16x16.png" );
+
+		m_sysTray->setIcon( icon );
+
+		QMenu * ctx = new QMenu( q );
+
+		ctx->addAction(
+			QIcon( ":/img/application-exit.png" ),
+			MainWindow::tr( "Quit" ), q, &MainWindow::quit );
+
+		m_sysTray->setContextMenu( ctx );
+
+		MainWindow::connect( m_sysTray, &QSystemTrayIcon::activated,
+			q, &MainWindow::sysTrayActivated );
+
+		m_sysTray->show();
+	}
+}
+
+void
+MainWindowPrivate::saveCfg()
+{
+	try {
+		Cfg::TagCfg tag( m_cfg );
+
+		QtConfFile::writeQtConfFile( tag, m_cfgFileName,
+			QTextCodec::codecForName( "UTF-8" ) );
+	}
+	catch( const QtConfFile::Exception & x )
+	{
+		QMessageBox::critical( q,
+			MainWindow::tr( "Unable to save configuration..." ),
+			MainWindow::tr( "Unable to save configuration.\n"
+				"%1" ).arg( x.whatAsQString() ) );
+	}
+}
+
+void
+MainWindowPrivate::stopCamera()
+{
 
 }
 
@@ -139,6 +209,40 @@ MainWindow::MainWindow( const QString & cfgFileName )
 
 MainWindow::~MainWindow()
 {
+}
+
+void
+MainWindow::quit()
+{
+	d->saveCfg();
+
+	d->stopCamera();
+
+	QApplication::quit();
+}
+
+void
+MainWindow::options()
+{
+
+}
+
+void
+MainWindow::sysTrayActivated( QSystemTrayIcon::ActivationReason reason )
+{
+	if( reason == QSystemTrayIcon::Trigger )
+		show();
+}
+
+void
+MainWindow::closeEvent( QCloseEvent * e )
+{
+	e->ignore();
+
+	if( d->m_sysTray )
+		hide();
+	else
+		showMinimized();
 }
 
 } /* namespace SecurityCam */
