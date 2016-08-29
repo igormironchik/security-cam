@@ -43,7 +43,7 @@ class MainWindow
 	Q_OBJECT
 
 public:
-	MainWindow();
+	explicit MainWindow( const QString & cfgFileName );
 	~MainWindow();
 
 private:

@@ -25,13 +25,54 @@
 
 // Qt include.
 #include <QApplication>
+#include <QDebug>
+#include <QStandardPaths>
+
+// QtArg include.
+#include <QtArg/CmdLine>
+#include <QtArg/Arg>
+#include <QtArg/Help>
+#include <QtArg/Exceptions>
 
 
 int main( int argc, char ** argv )
 {
+	QString cfgFileName =
+		QStandardPaths::writableLocation( QStandardPaths::AppConfigLocation ) +
+		QLatin1String( "/security-cam.cfg" );
+
+	try {
+		QtArgCmdLine cmd( argc, argv );
+
+		QtArg cfg( QLatin1Char( 'c' ), QLatin1String( "cfg" ),
+			QLatin1String( "Configuration file." ), false, true );
+		QtArgHelp help;
+		help.printer()->setExecutableName( argv[ 0 ] );
+		help.printer()->setProgramDescription(
+			QLatin1String( "Security USB camera." ) );
+
+		cmd.addParseable( cfg );
+		cmd.addParseable( help );
+
+		cmd.parse();
+
+		if( cfg.isDefined() )
+			cfgFileName = cfg.value();
+	}
+	catch( const QtArgHelpHasPrintedEx & )
+	{
+		return 0;
+	}
+	catch( const QtArgBaseException & x )
+	{
+		qDebug() << x.whatAsQString();
+
+		return 1;
+	}
+
 	QApplication app( argc, argv );
 
-	SecurityCam::MainWindow w;
+	SecurityCam::MainWindow w( cfgFileName );
 	w.show();
 
 	return app.exec();

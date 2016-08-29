@@ -2,7 +2,7 @@
 TEMPLATE = app
 DESTDIR = ..
 TARGET = SecurityCam.App
-QT += core gui widgets multimedia xml
+QT += core gui widgets multimedia xml multimediawidgets
 
 TO_GENERATE = cfg.qtconf
 
@@ -21,6 +21,12 @@ generate_cfg.commands = $$shell_path( $$absolute_path( $${OUT_PWD}/../3rdparty/Q
 
 PRE_TARGETDEPS += compiler_generate_cfg_make_all
 
+RESOURCES = resources.qrc
+
+win32 {
+    RC_FILE = SecurityCam.rc
+}
+
 HEADERS = mainwindow.hpp \
 	$$GENERATED
 
@@ -35,3 +41,5 @@ DEPENDPATH += $$PWD/../3rdparty/QtConfFile
 
 win32:!win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../3rdparty/QtConfFile/lib/QtConfFile.lib
 else:unix|win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../3rdparty/QtConfFile/lib/libQtConfFile.a
+
+include( ../3rdparty/QtArg/QtArg/qtarg.pri )

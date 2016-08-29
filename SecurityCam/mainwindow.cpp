@@ -22,6 +22,21 @@
 
 // SecurityCam include.
 #include "mainwindow.hpp"
+#include "cfg.hpp"
+
+// QtConfFile include.
+#include <QtConfFile/Utils>
+#include <QtConfFile/Exceptions>
+
+// Qt include.
+#include <QFileInfo>
+#include <QDir>
+#include <QMessageBox>
+#include <QMenu>
+#include <QMenuBar>
+#include <QAction>
+#include <QCamera>
+#include <QCameraViewfinder>
 
 
 namespace SecurityCam {
@@ -32,20 +47,81 @@ namespace SecurityCam {
 
 class MainWindowPrivate {
 public:
-	MainWindowPrivate( MainWindow * parent )
-		:	q( parent )
+	MainWindowPrivate( MainWindow * parent, const QString & cfgFileName )
+		:	m_cfgFileName( cfgFileName )
+		,	q( parent )
 	{
 	}
 
 	//! Init.
 	void init();
+	//! Read cfg.
+	bool readCfg();
+	//! Init camera.
+	void initCamera();
+	//! Init UI.
+	void initUi();
 
+	//! Configuration.
+	Cfg::Cfg m_cfg;
+	//! Cfg file.
+	QString m_cfgFileName;
 	//! Parent.
 	MainWindow * q;
 }; // class MainWindowPrivate
 
 void
 MainWindowPrivate::init()
+{
+	initUi();
+
+	if( readCfg() )
+		initCamera();
+}
+
+bool
+MainWindowPrivate::readCfg()
+{
+	if( QFileInfo::exists( m_cfgFileName ) )
+	{
+		try {
+			Cfg::TagCfg tag;
+
+			QtConfFile::readQtConfFile( tag, m_cfgFileName,
+				QTextCodec::codecForName( "UTF-8" ) );
+
+			m_cfg = tag.getCfg();
+
+			return true;
+		}
+		catch( const QtConfFile::Exception & x )
+		{
+			QMessageBox::critical( q,
+				MainWindow::tr( "Unable to load configuration..." ),
+				MainWindow::tr( "Unable to load configuration.\n"
+					"%1\n"
+					"Please configure application." )
+				.arg( x.whatAsQString() ) );
+		}
+	}
+	else
+		QMessageBox::information( q,
+			MainWindow::tr( "Unable to load configuration..." ),
+			MainWindow::tr( "Unable to load configuration.\n"
+				"No such file: \"%1\"\n"
+				"Please configure application." ).arg( m_cfgFileName ) );
+
+	return false;
+}
+
+void
+MainWindowPrivate::initCamera()
+{
+
+}
+
+void
+MainWindowPrivate::initUi()
 {
 
 }
@@ -55,8 +131,8 @@ MainWindowPrivate::init()
 // MainWindow
 //
 
-MainWindow::MainWindow()
-	:	d( new MainWindowPrivate( this ) )
+MainWindow::MainWindow( const QString & cfgFileName )
+	:	d( new MainWindowPrivate( this, cfgFileName ) )
 {
 	d->init();
 }
