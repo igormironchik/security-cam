@@ -1,0 +1,23 @@
+
+{forGeneration SECURITYCAM__CFG_HPP
+
+	{namespace SecurityCam
+
+		{namespace Cfg
+
+			|#
+				Cfg.
+			#|
+			{class Cfg
+				{tagScalar
+					{valueType QString}
+					{name camera}
+					{required}
+				}
+			}
+
+		} || namespace Cfg
+
+	} || namespace SecurityCam
+
+}
