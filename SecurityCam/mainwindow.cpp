@@ -87,6 +87,8 @@ MainWindowPrivate::init()
 
 	if( readCfg() )
 		initCamera();
+	else
+		q->options();
 }
 
 bool

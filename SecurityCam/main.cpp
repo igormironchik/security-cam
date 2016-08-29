@@ -85,6 +85,7 @@ int main( int argc, char ** argv )
 	app.setApplicationName( QObject::tr( "SecurityCam" ) );
 
 	SecurityCam::MainWindow w( cfgFileName );
+	w.resize( 640, 480 );
 	w.show();
 
 	return app.exec();
