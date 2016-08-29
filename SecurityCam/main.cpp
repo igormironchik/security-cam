@@ -37,9 +37,7 @@
 
 int main( int argc, char ** argv )
 {
-	QString cfgFileName =
-		QStandardPaths::writableLocation( QStandardPaths::AppConfigLocation ) +
-		QLatin1String( "/security-cam.cfg" );
+	QString cfgFileName;
 
 	try {
 		QtArgCmdLine cmd( argc, argv );
@@ -83,6 +81,11 @@ int main( int argc, char ** argv )
 	app.setWindowIcon( appIcon );
 	app.setApplicationDisplayName( QObject::tr( "SecurityCam" ) );
 	app.setApplicationName( QObject::tr( "SecurityCam" ) );
+
+	if( cfgFileName.isEmpty() )
+		cfgFileName =
+			QStandardPaths::writableLocation( QStandardPaths::AppConfigLocation ) +
+			QLatin1String( "/security-cam.cfg" );
 
 	SecurityCam::MainWindow w( cfgFileName );
 	w.resize( 640, 480 );

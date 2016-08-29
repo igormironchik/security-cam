@@ -177,6 +177,12 @@ MainWindowPrivate::initUi()
 void
 MainWindowPrivate::saveCfg()
 {
+	QFileInfo info( m_cfgFileName );
+	QDir dir( info.absolutePath() );
+
+	if( !dir.exists() )
+		dir.mkpath( info.absolutePath() );
+
 	try {
 		Cfg::TagCfg tag( m_cfg );
 
