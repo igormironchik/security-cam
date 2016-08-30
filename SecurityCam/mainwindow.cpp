@@ -358,6 +358,11 @@ MainWindow::sysTrayActivated( QSystemTrayIcon::ActivationReason reason )
 		show();
 }
 
+//! Interval between images.
+static const int c_takeImageInterval = 1500;
+//! How long should images be taken after no motion.
+static const int c_takeImagesYetInterval = 9 * 1000;
+
 void
 MainWindow::motionDetected()
 {
@@ -369,7 +374,7 @@ MainWindow::motionDetected()
 
 			takeImage();
 
-			d->m_timer->start( 1500 );
+			d->m_timer->start( c_takeImageInterval );
 		}
 		else
 			d->m_stopTimer->stop();
@@ -382,7 +387,7 @@ MainWindow::noMoreMotion()
 	if( d->m_cam )
 	{
 		if( d->m_isRecording )
-			d->m_stopTimer->start( 9 * 1000 );
+			d->m_stopTimer->start( c_takeImagesYetInterval );
 	}
 }
 
