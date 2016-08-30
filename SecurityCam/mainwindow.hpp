@@ -54,6 +54,12 @@ private slots:
 	void options();
 	//! System tray activated.
 	void sysTrayActivated( QSystemTrayIcon::ActivationReason reason );
+	//! Motion detected.
+	void motionDetected();
+	//! No more motion.
+	void noMoreMotion();
+	//! Stop recording on timeout.
+	void stopRecording();
 
 protected:
 	void closeEvent( QCloseEvent * e ) Q_DECL_OVERRIDE;

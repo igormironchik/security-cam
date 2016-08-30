@@ -88,22 +88,25 @@ View::draw( const QImage & image )
 void
 View::paintEvent( QPaintEvent * )
 {
-	QPainter p( this );
-	p.setBackground( Qt::black );
-
-	if( !d->m_image.isNull() )
+	if( isVisible() )
 	{
-		if( !d->m_resized )
+		QPainter p( this );
+		p.setBackground( Qt::black );
+
+		if( !d->m_image.isNull() )
 		{
-			d->m_image = d->m_image.scaled( size(), Qt::KeepAspectRatio );
+			if( !d->m_resized )
+			{
+				d->m_image = d->m_image.scaled( size(), Qt::KeepAspectRatio );
 
-			d->m_resized = true;
+				d->m_resized = true;
+			}
+
+			const int x = rect().x() + ( size().width() - d->m_image.width() ) / 2;
+			const int y = rect().y() + ( size().height() - d->m_image.height() ) / 2;
+
+			p.drawImage( x, y, d->m_image );
 		}
-
-		const int x = rect().x() + ( size().width() - d->m_image.width() ) / 2;
-		const int y = rect().y() + ( size().height() - d->m_image.height() ) / 2;
-
-		p.drawImage( x, y, d->m_image );
 	}
 }
 

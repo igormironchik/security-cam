@@ -23,6 +23,10 @@
 // SecurityCam include.
 #include "frames.hpp"
 
+// OpenCV include.
+#include <opencv2/core/core.hpp>
+#include <opencv2/core/core_c.h>
+
 
 namespace SecurityCam {
 
@@ -32,6 +36,8 @@ namespace SecurityCam {
 
 Frames::Frames( QObject * parent )
 	:	QAbstractVideoSurface( parent )
+	,	m_counter( 0 )
+	,	m_motion( false )
 {
 }
 
@@ -49,9 +55,110 @@ Frames::present( const QVideoFrame & frame )
 
 	f.unmap();
 
-	emit newFrame( image.copy( image.rect() ) );
+	if( m_counter == c_keyFrameChangesOn )
+		m_counter = 0;
+
+	if( m_counter == 0 )
+	{
+		if( !m_keyFrame.isNull() )
+			detectMotion( m_keyFrame, image );
+
+		m_keyFrame = image.copy( image.rect() );
+
+		emit newFrame( m_keyFrame );
+	}
+	else
+		emit newFrame( image.copy( image.rect() ) );
+
+	++m_counter;
 
 	return true;
+}
+
+inline cv::Mat QImageToCvMat( const QImage & inImage )
+{
+	switch ( inImage.format() )
+	{
+		// 8-bit, 4 channel
+		case QImage::Format_ARGB32:
+		case QImage::Format_ARGB32_Premultiplied:
+		{
+			cv::Mat mat( inImage.height(), inImage.width(),
+				CV_8UC4,
+				const_cast< uchar* >( inImage.bits() ),
+				static_cast< size_t >( inImage.bytesPerLine() ) );
+
+			return mat;
+		}
+
+		// 8-bit, 3 channel
+		case QImage::Format_RGB32:
+		case QImage::Format_RGB888:
+		{
+			QImage swapped;
+
+			if( inImage.format() == QImage::Format_RGB32 )
+				swapped = inImage.convertToFormat( QImage::Format_RGB888 );
+
+			swapped = inImage.rgbSwapped();
+
+			return cv::Mat( swapped.height(), swapped.width(),
+				CV_8UC3,
+				const_cast< uchar* >( swapped.bits() ),
+				static_cast< size_t >( swapped.bytesPerLine() ) ).clone();
+		}
+
+		// 8-bit, 1 channel
+		case QImage::Format_Indexed8:
+		{
+			cv::Mat mat( inImage.height(), inImage.width(),
+				CV_8UC1,
+				const_cast< uchar* >( inImage.bits() ),
+				static_cast< size_t >( inImage.bytesPerLine() ) );
+
+			return mat;
+		}
+
+		default:
+			break;
+	}
+
+	return cv::Mat();
+}
+
+void
+Frames::detectMotion( const QImage & key, const QImage & image )
+{
+	bool detected = false;
+
+	try {
+		const cv::Mat A = QImageToCvMat( key );
+		const cv::Mat B = QImageToCvMat( image );
+
+		// Calculate the L2 relative error between images.
+		const double errorL2 = norm( A, B, CV_L2 );
+		// Convert to a reasonable scale, since L2 error is summed across
+		// all pixels of the image.
+		const double similarity = errorL2 / (double)( A.rows * A.cols );
+
+		detected = similarity > c_threshold;
+	}
+	catch( const cv::Exception & )
+	{
+	}
+
+	if( m_motion && !detected )
+	{
+		m_motion = false;
+
+		emit noMoreMotions();
+	}
+	else if( !m_motion && detected )
+	{
+		m_motion = true;
+
+		emit motionDetected();
+	}
 }
 
 QList< QVideoFrame::PixelFormat >

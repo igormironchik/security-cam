@@ -29,6 +29,11 @@
 
 namespace SecurityCam {
 
+//! Count of processed frames when key farme changes.
+static const int c_keyFrameChangesOn = 10;
+//! Threshold of motion detection.
+static const double c_threshold = 0.015;
+
 //
 // Frames
 //
@@ -40,7 +45,12 @@ class Frames Q_DECL_FINAL
 	Q_OBJECT
 
 signals:
+	//! New frame arrived.
 	void newFrame( QImage );
+	//! Motion detected.
+	void motionDetected();
+	//! No more motions.
+	void noMoreMotions();
 
 public:
 	explicit Frames( QObject * parent );
@@ -50,6 +60,18 @@ public:
 	QList< QVideoFrame::PixelFormat > supportedPixelFormats(
 		QAbstractVideoBuffer::HandleType type =
 			QAbstractVideoBuffer::NoHandle ) const Q_DECL_OVERRIDE;
+
+private:
+	//! Detect motion.
+	void detectMotion( const QImage & key, const QImage & image );
+
+private:
+	//! Key frame.
+	QImage m_keyFrame;
+	//! Frames counter.
+	int m_counter;
+	//! Motions was detected.
+	bool m_motion;
 }; // class Frames
 
 } /* namespace SecurityCam */

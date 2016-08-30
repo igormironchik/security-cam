@@ -50,5 +50,9 @@ else:unix|win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../3rdparty/QtConfFile/lib/libQ
 
 include( ../3rdparty/QtArg/QtArg/qtarg.pri )
 
+unix: LIBS += -lopencv_core
+
+win32: LIBS += -lopencv_core2413
+
 FORMS += \
     options.ui

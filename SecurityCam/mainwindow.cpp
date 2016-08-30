@@ -43,6 +43,9 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QCameraInfo>
+#include <QTimer>
+#include <QTime>
+#include <QDate>
 
 
 namespace SecurityCam {
@@ -57,6 +60,8 @@ public:
 		:	m_sysTray( Q_NULLPTR )
 		,	m_cam( Q_NULLPTR )
 		,	m_rec( Q_NULLPTR )
+		,	m_isRecording( false )
+		,	m_timer( Q_NULLPTR )
 		,	m_frames( Q_NULLPTR )
 		,	m_view( Q_NULLPTR )
 		,	m_cfgFileName( cfgFileName )
@@ -83,6 +88,10 @@ public:
 	QCamera * m_cam;
 	//! Recorder.
 	QMediaRecorder * m_rec;
+	//! Recording?
+	bool m_isRecording;
+	//! Recording timer.
+	QTimer * m_timer;
 	//! Surface.
 	Frames * m_frames;
 	//! View.
@@ -170,6 +179,8 @@ MainWindowPrivate::initCamera()
 
 				m_rec = new QMediaRecorder( m_cam, q );
 
+				m_rec->setMuted( true );
+
 				m_cam->setCaptureMode( QCamera::CaptureVideo );
 
 				m_cam->start();
@@ -225,8 +236,16 @@ MainWindowPrivate::initUi()
 
 	q->setCentralWidget( m_view );
 
+	m_timer = new QTimer( q );
+
 	MainWindow::connect( m_frames, &Frames::newFrame,
 		m_view, &View::draw );
+	MainWindow::connect( m_frames, &Frames::motionDetected,
+		q, &MainWindow::motionDetected );
+	MainWindow::connect( m_frames, &Frames::noMoreMotions,
+		q, &MainWindow::noMoreMotion );
+	MainWindow::connect( m_timer, &QTimer::timeout,
+		q, &MainWindow::stopRecording );
 }
 
 void
@@ -256,6 +275,8 @@ MainWindowPrivate::saveCfg()
 void
 MainWindowPrivate::stopCamera()
 {
+	m_timer->stop();
+
 	if( m_rec )
 		m_rec->stop();
 
@@ -337,6 +358,55 @@ MainWindow::sysTrayActivated( QSystemTrayIcon::ActivationReason reason )
 {
 	if( reason == QSystemTrayIcon::Trigger )
 		show();
+}
+
+void
+MainWindow::motionDetected()
+{
+	if( d->m_rec )
+	{
+		if( !d->m_isRecording )
+		{
+			d->m_isRecording = true;
+
+			const QDateTime current = QDateTime::currentDateTime();
+
+			QDir dir( d->m_cfg.folder() );
+
+			const QString path = dir.absolutePath() +
+				current.date().toString( QLatin1String( "/yyyy/MM/dd/" ) );
+
+			dir.mkpath( path );
+
+			d->m_rec->setOutputLocation( QUrl::fromLocalFile(
+				path + current.time().toString( QLatin1String( "hh.mm.ss" ) ) ) );
+
+			d->m_rec->record();
+		}
+		else
+			d->m_timer->stop();
+	}
+}
+
+void
+MainWindow::noMoreMotion()
+{
+	if( d->m_rec )
+	{
+		if( d->m_isRecording )
+			d->m_timer->start( 30 * 1000 );
+	}
+}
+
+void
+MainWindow::stopRecording()
+{
+	if( d->m_rec )
+	{
+		d->m_rec->stop();
+
+		d->m_isRecording = false;
+	}
 }
 
 void
