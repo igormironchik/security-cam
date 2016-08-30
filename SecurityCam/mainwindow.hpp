@@ -60,6 +60,8 @@ private slots:
 	void noMoreMotion();
 	//! Stop recording on timeout.
 	void stopRecording();
+	//! Take image.
+	void takeImage();
 
 protected:
 	void closeEvent( QCloseEvent * e ) Q_DECL_OVERRIDE;

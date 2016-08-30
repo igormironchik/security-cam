@@ -39,7 +39,7 @@
 #include <QMenuBar>
 #include <QAction>
 #include <QCamera>
-#include <QMediaRecorder>
+#include <QCameraImageCapture>
 #include <QApplication>
 #include <QCloseEvent>
 #include <QCameraInfo>
@@ -59,9 +59,9 @@ public:
 	MainWindowPrivate( MainWindow * parent, const QString & cfgFileName )
 		:	m_sysTray( Q_NULLPTR )
 		,	m_cam( Q_NULLPTR )
-		,	m_rec( Q_NULLPTR )
+		,	m_capture( Q_NULLPTR )
 		,	m_isRecording( false )
-		,	m_timer( Q_NULLPTR )
+		,	m_stopTimer( Q_NULLPTR )
 		,	m_frames( Q_NULLPTR )
 		,	m_view( Q_NULLPTR )
 		,	m_cfgFileName( cfgFileName )
@@ -86,11 +86,13 @@ public:
 	QSystemTrayIcon * m_sysTray;
 	//! Camera.
 	QCamera * m_cam;
-	//! Recorder.
-	QMediaRecorder * m_rec;
+	//! Capture.
+	QCameraImageCapture * m_capture;
 	//! Recording?
 	bool m_isRecording;
-	//! Recording timer.
+	//! Stop timer.
+	QTimer * m_stopTimer;
+	//! Take image timer.
 	QTimer * m_timer;
 	//! Surface.
 	Frames * m_frames;
@@ -177,11 +179,9 @@ MainWindowPrivate::initCamera()
 
 				m_cam->setViewfinder( m_frames );
 
-				m_rec = new QMediaRecorder( m_cam, q );
+				m_capture = new QCameraImageCapture( m_cam, q );
 
-				m_rec->setMuted( true );
-
-				m_cam->setCaptureMode( QCamera::CaptureVideo );
+				m_cam->setCaptureMode( QCamera::CaptureStillImage );
 
 				m_cam->start();
 			}
@@ -236,16 +236,20 @@ MainWindowPrivate::initUi()
 
 	q->setCentralWidget( m_view );
 
+	m_stopTimer = new QTimer( q );
+
 	m_timer = new QTimer( q );
 
 	MainWindow::connect( m_frames, &Frames::newFrame,
-		m_view, &View::draw );
+		m_view, &View::draw, Qt::QueuedConnection );
 	MainWindow::connect( m_frames, &Frames::motionDetected,
-		q, &MainWindow::motionDetected );
+		q, &MainWindow::motionDetected, Qt::QueuedConnection );
 	MainWindow::connect( m_frames, &Frames::noMoreMotions,
-		q, &MainWindow::noMoreMotion );
-	MainWindow::connect( m_timer, &QTimer::timeout,
+		q, &MainWindow::noMoreMotion, Qt::QueuedConnection );
+	MainWindow::connect( m_stopTimer, &QTimer::timeout,
 		q, &MainWindow::stopRecording );
+	MainWindow::connect( m_timer, &QTimer::timeout,
+		q, &MainWindow::takeImage );
 }
 
 void
@@ -275,25 +279,19 @@ MainWindowPrivate::saveCfg()
 void
 MainWindowPrivate::stopCamera()
 {
-	m_timer->stop();
-
-	if( m_rec )
-		m_rec->stop();
+	m_stopTimer->stop();
 
 	if( m_cam )
 	{
 		m_cam->stop();
 
+		m_capture->deleteLater();
+
+		m_capture = Q_NULLPTR;
+
 		m_cam->deleteLater();
 
 		m_cam = Q_NULLPTR;
-	}
-
-	if( m_rec )
-	{
-		m_rec->deleteLater();
-
-		m_rec = Q_NULLPTR;
 	}
 }
 
@@ -363,49 +361,60 @@ MainWindow::sysTrayActivated( QSystemTrayIcon::ActivationReason reason )
 void
 MainWindow::motionDetected()
 {
-	if( d->m_rec )
+	if( d->m_cam )
 	{
 		if( !d->m_isRecording )
 		{
 			d->m_isRecording = true;
 
-			const QDateTime current = QDateTime::currentDateTime();
+			takeImage();
 
-			QDir dir( d->m_cfg.folder() );
-
-			const QString path = dir.absolutePath() +
-				current.date().toString( QLatin1String( "/yyyy/MM/dd/" ) );
-
-			dir.mkpath( path );
-
-			d->m_rec->setOutputLocation( QUrl::fromLocalFile(
-				path + current.time().toString( QLatin1String( "hh.mm.ss" ) ) ) );
-
-			d->m_rec->record();
+			d->m_timer->start( 1500 );
 		}
 		else
-			d->m_timer->stop();
+			d->m_stopTimer->stop();
 	}
 }
 
 void
 MainWindow::noMoreMotion()
 {
-	if( d->m_rec )
+	if( d->m_cam )
 	{
 		if( d->m_isRecording )
-			d->m_timer->start( 30 * 1000 );
+			d->m_stopTimer->start( 9 * 1000 );
 	}
 }
 
 void
 MainWindow::stopRecording()
 {
-	if( d->m_rec )
+	if( d->m_cam )
 	{
-		d->m_rec->stop();
+		d->m_stopTimer->stop();
+
+		d->m_timer->stop();
 
 		d->m_isRecording = false;
+	}
+}
+
+void
+MainWindow::takeImage()
+{
+	if( d->m_capture )
+	{
+		const QDateTime current = QDateTime::currentDateTime();
+
+		QDir dir( d->m_cfg.folder() );
+
+		const QString path = dir.absolutePath() +
+			current.date().toString( QLatin1String( "/yyyy/MM/dd/" ) );
+
+		dir.mkpath( path );
+
+		d->m_capture->capture( path +
+			current.toString( QLatin1String( "hh.mm.ss" ) ) );
 	}
 }
 

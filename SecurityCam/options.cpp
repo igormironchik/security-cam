@@ -87,7 +87,7 @@ OptionsPrivate::init()
 
 	if( m_cfg.folder().isEmpty() )
 		m_ui.m_dir->setText( QStandardPaths::writableLocation(
-			QStandardPaths::MoviesLocation ) );
+			QStandardPaths::PicturesLocation ) );
 	else
 		m_ui.m_dir->setText( m_cfg.folder() );
 
