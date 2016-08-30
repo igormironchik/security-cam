@@ -30,12 +30,14 @@ win32 {
 HEADERS = mainwindow.hpp \
 	$$GENERATED \
     options.hpp \
-    frames.hpp
+    frames.hpp \
+    view.hpp
 
 SOURCES = main.cpp \
 	mainwindow.cpp \
     options.cpp \
-    frames.cpp
+    frames.cpp \
+    view.cpp
 	
 
 unix|win32: LIBS += -L$$OUT_PWD/../3rdparty/QtConfFile/lib/ -lQtConfFile

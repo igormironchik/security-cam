@@ -38,7 +38,7 @@ namespace SecurityCam {
 class MainWindowPrivate;
 
 //! Main window of the application.
-class MainWindow
+class MainWindow Q_DECL_FINAL
 	:	public QMainWindow
 {
 	Q_OBJECT
@@ -56,7 +56,7 @@ private slots:
 	void sysTrayActivated( QSystemTrayIcon::ActivationReason reason );
 
 protected:
-	void closeEvent( QCloseEvent * e );
+	void closeEvent( QCloseEvent * e ) Q_DECL_OVERRIDE;
 
 private:
 	friend class MainWindowPrivate;

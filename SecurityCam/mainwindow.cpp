@@ -25,6 +25,7 @@
 #include "cfg.hpp"
 #include "options.hpp"
 #include "frames.hpp"
+#include "view.hpp"
 
 // QtConfFile include.
 #include <QtConfFile/Utils>
@@ -57,6 +58,7 @@ public:
 		,	m_cam( Q_NULLPTR )
 		,	m_rec( Q_NULLPTR )
 		,	m_frames( Q_NULLPTR )
+		,	m_view( Q_NULLPTR )
 		,	m_cfgFileName( cfgFileName )
 		,	q( parent )
 	{
@@ -83,6 +85,8 @@ public:
 	QMediaRecorder * m_rec;
 	//! Surface.
 	Frames * m_frames;
+	//! View.
+	View * m_view;
 	//! Configuration.
 	Cfg::Cfg m_cfg;
 	//! Cfg file.
@@ -216,6 +220,13 @@ MainWindowPrivate::initUi()
 	}
 
 	m_frames = new Frames( q );
+
+	m_view = new View( q );
+
+	q->setCentralWidget( m_view );
+
+	MainWindow::connect( m_frames, &Frames::newFrame,
+		m_view, &View::draw );
 }
 
 void

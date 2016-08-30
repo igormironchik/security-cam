@@ -34,7 +34,7 @@ namespace SecurityCam {
 //
 
 //! Frames listener.
-class Frames
+class Frames Q_DECL_FINAL
 	:	public QAbstractVideoSurface
 {
 	Q_OBJECT
@@ -43,14 +43,14 @@ signals:
 	void newFrame( QImage );
 
 public:
-	Frames( QObject * parent );
+	explicit Frames( QObject * parent );
 
 	bool present( const QVideoFrame & frame ) Q_DECL_OVERRIDE;
 
 	QList< QVideoFrame::PixelFormat > supportedPixelFormats(
 		QAbstractVideoBuffer::HandleType type =
 			QAbstractVideoBuffer::NoHandle ) const Q_DECL_OVERRIDE;
-}; // class ViewFinderSurface
+}; // class Frames
 
 } /* namespace SecurityCam */
 

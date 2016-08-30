@@ -20,50 +20,46 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SECURITYCAM__OPTIONS_HPP__INCLUDED
-#define SECURITYCAM__OPTIONS_HPP__INCLUDED
+#ifndef SECURITYCAM__VIEW_HPP__INCLUDED
+#define SECURITYCAM__VIEW_HPP__INCLUDED
 
 // Qt include.
-#include <QDialog>
+#include <QWidget>
 #include <QScopedPointer>
-
-// SecurityCam include.
-#include "cfg.hpp"
 
 
 namespace SecurityCam {
 
 //
-// Options
+// View
 //
 
-class OptionsPrivate;
+class ViewPrivate;
 
-//! Options of the application.
-class Options Q_DECL_FINAL
-	:	public QDialog
+//! View of the video data from the camera.
+class View Q_DECL_FINAL
+	:	public QWidget
 {
 	Q_OBJECT
 
 public:
-	Options( const Cfg::Cfg & cfg, QWidget * parent );
-	~Options();
+	explicit View( QWidget * parent );
+	~View();
 
-	//! \return Cfg.
-	Cfg::Cfg cfg() const;
+public slots:
+	//! Draw image.
+	void draw( const QImage & image );
 
-private slots:
-	//! Choose folder.
-	void chooseFolder();
+protected:
+	void paintEvent( QPaintEvent * ) Q_DECL_OVERRIDE;
+	void resizeEvent( QResizeEvent * e ) Q_DECL_OVERRIDE;
 
 private:
-	friend class OptionsPrivate;
+	Q_DISABLE_COPY( View )
 
-	Q_DISABLE_COPY( Options )
+	QScopedPointer< ViewPrivate > d;
+}; // class View
 
-	QScopedPointer< OptionsPrivate > d;
-}; // class Options
+} /* namespace SecurityCam */
 
-} // namespace SecurityCam
-
-#endif // SECURITYCAM__OPTIONS_HPP__INCLUDED
+#endif // SECURITYCAM__VIEW_HPP__INCLUDED
