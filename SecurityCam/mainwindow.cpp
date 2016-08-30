@@ -62,6 +62,8 @@ public:
 		,	m_capture( Q_NULLPTR )
 		,	m_isRecording( false )
 		,	m_stopTimer( Q_NULLPTR )
+		,	m_timer( Q_NULLPTR )
+		,	m_cleanTimer( Q_NULLPTR )
 		,	m_frames( Q_NULLPTR )
 		,	m_view( Q_NULLPTR )
 		,	m_cfgFileName( cfgFileName )
@@ -81,6 +83,8 @@ public:
 	void saveCfg();
 	//! Stop camera.
 	void stopCamera();
+	//! Start clean timer.
+	void startCleanTimer();
 
 	//! System tray icon.
 	QSystemTrayIcon * m_sysTray;
@@ -94,6 +98,8 @@ public:
 	QTimer * m_stopTimer;
 	//! Take image timer.
 	QTimer * m_timer;
+	//! Clean timer.
+	QTimer * m_cleanTimer;
 	//! Surface.
 	Frames * m_frames;
 	//! View.
@@ -112,9 +118,32 @@ MainWindowPrivate::init()
 	initUi();
 
 	if( readCfg() )
+	{
 		initCamera();
+
+		startCleanTimer();
+	}
 	else
 		q->options();
+}
+
+void
+MainWindowPrivate::startCleanTimer()
+{
+	m_cleanTimer->stop();
+
+	if( m_cfg.storeDays() > 0 )
+	{
+		QTime t = QTime::fromString( m_cfg.clearTime(),
+			QLatin1String( "hh:mm" ) );
+
+		int s = QTime::currentTime().secsTo( t );
+
+		if( s < 0 )
+			s = 24 * 60 * 60 + s;
+
+		m_cleanTimer->start( s * 1000 );
+	}
 }
 
 bool
@@ -202,6 +231,10 @@ MainWindowPrivate::initUi()
 	opts->addAction( QIcon( ":/img/configure.png" ),
 		MainWindow::tr( "&Settings"), q, &MainWindow::options );
 
+	QMenu * help = q->menuBar()->addMenu( MainWindow::tr( "&Help" ) );
+	help->addAction( MainWindow::tr( "About" ), q, &MainWindow::about );
+	help->addAction( MainWindow::tr( "About Qt" ), q, &MainWindow::aboutQt );
+
 	if( QSystemTrayIcon::isSystemTrayAvailable() )
 	{
 		m_sysTray = new QSystemTrayIcon( q );
@@ -240,6 +273,8 @@ MainWindowPrivate::initUi()
 
 	m_timer = new QTimer( q );
 
+	m_cleanTimer = new QTimer( q );
+
 	MainWindow::connect( m_frames, &Frames::newFrame,
 		m_view, &View::draw, Qt::QueuedConnection );
 	MainWindow::connect( m_frames, &Frames::motionDetected,
@@ -250,6 +285,8 @@ MainWindowPrivate::initUi()
 		q, &MainWindow::stopRecording );
 	MainWindow::connect( m_timer, &QTimer::timeout,
 		q, &MainWindow::takeImage );
+	MainWindow::connect( m_cleanTimer, &QTimer::timeout,
+		q, &MainWindow::clean );
 }
 
 void
@@ -336,6 +373,8 @@ MainWindow::options()
 
 		d->m_cfg = c;
 
+		d->startCleanTimer();
+
 		if( reinit )
 		{
 			d->stopCamera();
@@ -348,6 +387,8 @@ MainWindow::options()
 		d->m_cfg = opts.cfg();
 
 		d->initCamera();
+
+		d->startCleanTimer();
 	}
 }
 
@@ -361,7 +402,7 @@ MainWindow::sysTrayActivated( QSystemTrayIcon::ActivationReason reason )
 //! Interval between images.
 static const int c_takeImageInterval = 1500;
 //! How long should images be taken after no motion.
-static const int c_takeImagesYetInterval = 9 * 1000;
+static const int c_takeImagesYetInterval = 3 * 1000;
 
 void
 MainWindow::motionDetected()
@@ -418,6 +459,8 @@ MainWindow::takeImage()
 
 		dir.mkpath( path );
 
+		d->m_cam->searchAndLock();
+
 		d->m_capture->capture( path +
 			current.toString( QLatin1String( "hh.mm.ss" ) ) );
 	}
@@ -432,6 +475,82 @@ MainWindow::closeEvent( QCloseEvent * e )
 		hide();
 	else
 		showMinimized();
+}
+
+void
+MainWindow::about()
+{
+	QMessageBox::about( this, tr( "About SecurityCam" ),
+		tr( "SecurityCam.\n\n"
+			"Author - Igor Mironchik (igor.mironchik at gmail dot com).\n\n"
+			"Copyright (c) 2016 Igor Mironchik.\n\n"
+			"Licensed under GNU GPL 3.0." ) );
+}
+
+void
+MainWindow::aboutQt()
+{
+	QMessageBox::aboutQt( this );
+}
+
+void
+MainWindow::clean()
+{
+	d->m_cleanTimer->start( 24 * 60 * 60 * 1000 );
+
+	const QDate dt = QDate::currentDate().addDays( -d->m_cfg.storeDays() );
+
+	QDir year( d->m_cfg.folder() );
+
+	QStringList years = year.entryList( QDir::Dirs | QDir::NoDotAndDotDot );
+
+	foreach( const QString & y, years )
+	{
+		bool ok = false;
+
+		const int yValue = y.toInt( &ok );
+
+		if( ok )
+		{
+			QDir month( d->m_cfg.folder() + QLatin1String( "/" ) + y );
+
+			QStringList monthes =
+				month.entryList( QDir::Dirs | QDir::NoDotAndDotDot );
+
+			foreach( const QString & m, monthes )
+			{
+				bool ok = false;
+
+				const int mValue = m.toInt( &ok );
+
+				if( ok )
+				{
+					QDir day( d->m_cfg.folder() + QLatin1String( "/" ) + y +
+						QLatin1String( "/" ) + m );
+
+					QStringList days =
+						day.entryList( QDir::Dirs | QDir::NoDotAndDotDot );
+
+					foreach( const QString & dd, days )
+					{
+						bool ok = false;
+
+						const int dValue = dd.toInt( &ok );
+
+						if( ok && QDate( yValue, mValue, dValue ) < dt )
+						{
+							QDir r( d->m_cfg.folder() +
+								QLatin1String( "/" ) + y +
+								QLatin1String( "/" ) + m +
+								QLatin1String( "/" ) + dd );
+
+							r.removeRecursively();
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 } /* namespace SecurityCam */

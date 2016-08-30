@@ -62,6 +62,12 @@ private slots:
 	void stopRecording();
 	//! Take image.
 	void takeImage();
+	//! About.
+	void about();
+	//! About Qt.
+	void aboutQt();
+	//! Clean.
+	void clean();
 
 protected:
 	void closeEvent( QCloseEvent * e ) Q_DECL_OVERRIDE;

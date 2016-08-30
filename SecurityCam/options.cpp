@@ -117,6 +117,10 @@ Options::cfg() const
 	d->m_cfg.setCamera( d->m_cameras.at(
 		d->m_ui.m_camera->currentIndex() ).deviceName() );
 	d->m_cfg.setFolder( d->m_ui.m_dir->text() );
+	d->m_cfg.setStoreDays( d->m_ui.m_clean->isChecked() ?
+		d->m_ui.m_storeDays->value() : 0 );
+	d->m_cfg.setClearTime( d->m_ui.m_cleanTime->time()
+		.toString( QLatin1String( "hh:mm" ) ) );
 
 	return d->m_cfg;
 }

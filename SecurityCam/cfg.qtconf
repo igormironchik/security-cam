@@ -18,6 +18,17 @@
 				{tagScalar
 					{valueType QString}
 					{name folder}
+					{required}
+				}
+
+				{tagScalar
+					{valueType int}
+					{name storeDays}
+				}
+
+				{tagScalar
+					{valueType QString}
+					{name clearTime}
 				}
 			}
 
