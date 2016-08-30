@@ -547,6 +547,11 @@ MainWindow::clean()
 							r.removeRecursively();
 						}
 					}
+
+					days = day.entryList( QDir::Dirs | QDir::NoDotAndDotDot );
+
+					if( days.isEmpty() )
+						day.removeRecursively();
 				}
 			}
 		}
