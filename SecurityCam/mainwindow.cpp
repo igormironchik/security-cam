@@ -375,6 +375,8 @@ MainWindow::options()
 
 		d->startCleanTimer();
 
+		d->saveCfg();
+
 		if( reinit )
 		{
 			d->stopCamera();
@@ -389,6 +391,8 @@ MainWindow::options()
 		d->initCamera();
 
 		d->startCleanTimer();
+
+		d->saveCfg();
 	}
 }
 

@@ -91,6 +91,16 @@ OptionsPrivate::init()
 	else
 		m_ui.m_dir->setText( m_cfg.folder() );
 
+	m_ui.m_cleanTime->setTime( QTime::fromString( m_cfg.clearTime(),
+		QLatin1String( "hh:mm" ) ) );
+
+	m_ui.m_storeDays->setValue( m_cfg.storeDays() );
+
+	if( m_cfg.storeDays() <= 0 )
+		m_ui.m_clean->setChecked( false );
+	else
+		m_ui.m_clean->setChecked( true );
+
 	Options::connect( m_ui.m_selectDir, &QToolButton::clicked,
 		q, &Options::chooseFolder );
 }

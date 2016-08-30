@@ -24,11 +24,13 @@
 				{tagScalar
 					{valueType int}
 					{name storeDays}
+					{required}
 				}
 
 				{tagScalar
 					{valueType QString}
 					{name clearTime}
+					{required}
 				}
 			}
 
