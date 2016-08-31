@@ -504,9 +504,9 @@ MainWindow::clean()
 
 	const QDate dt = QDate::currentDate().addDays( -d->m_cfg.storeDays() );
 
-	QDir year( d->m_cfg.folder() );
+	QDir folder( d->m_cfg.folder() );
 
-	QStringList years = year.entryList( QDir::Dirs | QDir::NoDotAndDotDot );
+	QStringList years = folder.entryList( QDir::Dirs | QDir::NoDotAndDotDot );
 
 	foreach( const QString & y, years )
 	{
@@ -516,10 +516,10 @@ MainWindow::clean()
 
 		if( ok )
 		{
-			QDir month( d->m_cfg.folder() + QLatin1String( "/" ) + y );
+			QDir year( d->m_cfg.folder() + QLatin1String( "/" ) + y );
 
 			QStringList monthes =
-				month.entryList( QDir::Dirs | QDir::NoDotAndDotDot );
+				year.entryList( QDir::Dirs | QDir::NoDotAndDotDot );
 
 			foreach( const QString & m, monthes )
 			{
@@ -529,11 +529,11 @@ MainWindow::clean()
 
 				if( ok )
 				{
-					QDir day( d->m_cfg.folder() + QLatin1String( "/" ) + y +
+					QDir month( d->m_cfg.folder() + QLatin1String( "/" ) + y +
 						QLatin1String( "/" ) + m );
 
 					QStringList days =
-						day.entryList( QDir::Dirs | QDir::NoDotAndDotDot );
+						month.entryList( QDir::Dirs | QDir::NoDotAndDotDot );
 
 					foreach( const QString & dd, days )
 					{
@@ -552,12 +552,17 @@ MainWindow::clean()
 						}
 					}
 
-					days = day.entryList( QDir::Dirs | QDir::NoDotAndDotDot );
+					days = month.entryList( QDir::Dirs | QDir::NoDotAndDotDot );
 
 					if( days.isEmpty() )
-						day.removeRecursively();
+						month.removeRecursively();
 				}
 			}
+
+			monthes = year.entryList( QDir::Dirs | QDir::NoDotAndDotDot );
+
+			if( monthes.isEmpty() )
+				year.removeRecursively();
 		}
 	}
 }
