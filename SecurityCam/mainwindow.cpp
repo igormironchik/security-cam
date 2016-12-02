@@ -61,6 +61,8 @@ public:
 		,	m_cam( Q_NULLPTR )
 		,	m_capture( Q_NULLPTR )
 		,	m_isRecording( false )
+		,	m_takeImageInterval( 1500 )
+		,	m_takeImagesYetInterval( 3 * 1000 )
 		,	m_stopTimer( Q_NULLPTR )
 		,	m_timer( Q_NULLPTR )
 		,	m_cleanTimer( Q_NULLPTR )
@@ -94,6 +96,10 @@ public:
 	QCameraImageCapture * m_capture;
 	//! Recording?
 	bool m_isRecording;
+	//! Interval between images.
+	int m_takeImageInterval;
+	//! How long should images be taken after no motion.
+	int m_takeImagesYetInterval;
 	//! Stop timer.
 	QTimer * m_stopTimer;
 	//! Take image timer.
@@ -263,7 +269,15 @@ MainWindowPrivate::initUi()
 		m_sysTray->show();
 	}
 
-	m_frames = new Frames( q );
+	m_cfg.setApplyTransform( false );
+	m_cfg.setRotation( 0.0 );
+	m_cfg.setMirrored( false );
+	m_cfg.setThreshold( 0.02 );
+	m_cfg.setSnapshotTimeout( 1500 );
+	m_cfg.setStopTimeout( 3000 );
+	m_cfg.setStoreDays( 0 );
+
+	m_frames = new Frames( m_cfg, q );
 
 	m_view = new View( q );
 
@@ -362,6 +376,9 @@ MainWindow::options()
 {
 	Options opts( d->m_cfg, this );
 
+	connect( d->m_frames, &Frames::imgDiff,
+		&opts, &Options::imgDiff, Qt::QueuedConnection );
+
 	if( QDialog::Accepted == opts.exec() )
 	{
 		const Cfg::Cfg c = opts.cfg();
@@ -374,6 +391,23 @@ MainWindow::options()
 		d->m_cfg = c;
 
 		d->startCleanTimer();
+
+		d->m_takeImageInterval = d->m_cfg.snapshotTimeout();
+
+		d->m_takeImagesYetInterval = d->m_cfg.stopTimeout();
+
+		if( d->m_cfg.applyTransform() )
+		{
+			d->m_frames->setRotation( d->m_cfg.rotation() );
+
+			d->m_frames->setMirrored( d->m_cfg.mirrored() );
+
+			d->m_frames->applyTransform( true );
+		}
+		else
+			d->m_frames->applyTransform( false );
+
+		d->m_frames->setThreshold( d->m_cfg.threshold() );
 
 		d->saveCfg();
 
@@ -403,11 +437,6 @@ MainWindow::sysTrayActivated( QSystemTrayIcon::ActivationReason reason )
 		show();
 }
 
-//! Interval between images.
-static const int c_takeImageInterval = 1500;
-//! How long should images be taken after no motion.
-static const int c_takeImagesYetInterval = 3 * 1000;
-
 void
 MainWindow::motionDetected()
 {
@@ -419,7 +448,7 @@ MainWindow::motionDetected()
 
 			takeImage();
 
-			d->m_timer->start( c_takeImageInterval );
+			d->m_timer->start( d->m_takeImageInterval );
 		}
 		else
 			d->m_stopTimer->stop();
@@ -432,7 +461,7 @@ MainWindow::noMoreMotion()
 	if( d->m_cam )
 	{
 		if( d->m_isRecording )
-			d->m_stopTimer->start( c_takeImagesYetInterval );
+			d->m_stopTimer->start( d->m_takeImagesYetInterval );
 	}
 }
 

@@ -101,6 +101,22 @@ OptionsPrivate::init()
 	else
 		m_ui.m_clean->setChecked( true );
 
+	if( m_cfg.applyTransform() )
+	{
+		m_ui.m_transformGroup->setChecked( true );
+
+		m_ui.m_rotation->setValue( m_cfg.rotation() );
+
+		m_ui.m_mirrored->setChecked( m_cfg.mirrored() );
+	}
+	else
+		m_ui.m_transformGroup->setChecked( false );
+
+	m_ui.m_snapshotTimeout->setValue( m_cfg.snapshotTimeout() );
+
+	m_ui.m_stopTimeout->setValue( m_cfg.stopTimeout() );
+
+
 	Options::connect( m_ui.m_selectDir, &QToolButton::clicked,
 		q, &Options::chooseFolder );
 }
@@ -131,6 +147,11 @@ Options::cfg() const
 		d->m_ui.m_storeDays->value() : 0 );
 	d->m_cfg.setClearTime( d->m_ui.m_cleanTime->time()
 		.toString( QLatin1String( "hh:mm" ) ) );
+	d->m_cfg.setApplyTransform( d->m_ui.m_transformGroup->isChecked() );
+	d->m_cfg.setRotation( d->m_ui.m_rotation->value() );
+	d->m_cfg.setMirrored( d->m_ui.m_mirrored->isChecked() );
+	d->m_cfg.setSnapshotTimeout( d->m_ui.m_snapshotTimeout->value() );
+	d->m_cfg.setStopTimeout( d->m_ui.m_stopTimeout->value() );
 
 	return d->m_cfg;
 }
@@ -143,6 +164,12 @@ Options::chooseFolder()
 
 	if( !folder.isEmpty() )
 		d->m_ui.m_dir->setText( folder );
+}
+
+void
+Options::imgDiff( qreal value )
+{
+	d->m_ui.m_diff->setText( QString::number( value, 'f', 5 ) );
 }
 
 } // namespace SecurityCam

@@ -32,6 +32,36 @@
 					{name clearTime}
 					{required}
 				}
+
+                {tagScalar
+                    {valueType qreal}
+                    {name threshold}
+                }
+
+                {tagScalar
+                    {valueType bool}
+                    {name applyTransform}
+                }
+
+                {tagScalar
+                    {valueType qreal}
+                    {name rotation}
+                }
+
+                {tagScalar
+                    {valueType bool}
+                    {name mirrored}
+                }
+
+                {tagScalar
+                    {valueType int}
+                    {name snapshotTimeout}
+                }
+
+                {tagScalar
+                    {valueType int}
+                    {name stopTimeout}
+                }
 			}
 
 		} || namespace Cfg

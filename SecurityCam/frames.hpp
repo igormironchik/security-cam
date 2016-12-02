@@ -25,14 +25,18 @@
 
 // Qt include.
 #include <QAbstractVideoSurface>
+#include <QTransform>
+#include <QMutex>
+
+// SecurityCam include.
+#include "cfg.hpp"
 
 
 namespace SecurityCam {
 
 //! Count of processed frames when key farme changes.
 static const int c_keyFrameChangesOn = 10;
-//! Threshold of motion detection.
-static const double c_threshold = 0.015;
+
 
 //
 // Frames
@@ -51,9 +55,29 @@ signals:
 	void motionDetected();
 	//! No more motions.
 	void noMoreMotions();
+	//! Images difference.
+	void imgDiff( qreal diff );
 
 public:
-	explicit Frames( QObject * parent );
+	Frames( const Cfg::Cfg & cfg, QObject * parent );
+
+	//! \return Rotation.
+	qreal rotation() const;
+	//! Set rotation.
+	void setRotation( qreal a );
+
+	//! \return Mirrored?
+	bool mirrored() const;
+	//! Set mirrored.
+	void setMirrored( bool on );
+
+	//! \return Threshold.
+	qreal threshold() const;
+	//! Set threshold.
+	void setThreshold( qreal v );
+
+	//! Apply new transformations.
+	void applyTransform( bool on = true );
 
 	bool present( const QVideoFrame & frame ) Q_DECL_OVERRIDE;
 
@@ -72,6 +96,16 @@ private:
 	int m_counter;
 	//! Motions was detected.
 	bool m_motion;
+	//! Mutex.
+	mutable QMutex m_mutex;
+	//! Transformation.
+	QTransform m_transform;
+	//! Threshold.
+	qreal m_threshold;
+	//! Rotation.
+	qreal m_rotation;
+	//! Mirrored.
+	bool m_mirrored;
 }; // class Frames
 
 } /* namespace SecurityCam */

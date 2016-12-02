@@ -27,6 +27,9 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/core_c.h>
 
+// Qt include.
+#include <QMutexLocker>
+
 
 namespace SecurityCam {
 
@@ -34,11 +37,74 @@ namespace SecurityCam {
 // Frames
 //
 
-Frames::Frames( QObject * parent )
+Frames::Frames( const Cfg::Cfg & cfg, QObject * parent )
 	:	QAbstractVideoSurface( parent )
 	,	m_counter( 0 )
 	,	m_motion( false )
+	,	m_threshold( cfg.threshold() )
+	,	m_rotation( cfg.rotation() )
+	,	m_mirrored( cfg.mirrored() )
 {
+	if( cfg.applyTransform() )
+		applyTransform();
+}
+
+qreal
+Frames::rotation() const
+{
+	return m_rotation;
+}
+
+void
+Frames::setRotation( qreal a )
+{
+	m_rotation = a;
+}
+
+bool
+Frames::mirrored() const
+{
+	return m_mirrored;
+}
+
+void
+Frames::setMirrored( bool on )
+{
+	m_mirrored = on;
+}
+
+qreal
+Frames::threshold() const
+{
+	QMutexLocker lock( &m_mutex );
+
+	return m_threshold;
+}
+
+void
+Frames::setThreshold( qreal v )
+{
+	QMutexLocker lock( &m_mutex );
+
+	m_threshold = v;
+}
+
+void
+Frames::applyTransform( bool on )
+{
+	QMutexLocker lock( &m_mutex );
+
+	if( on )
+	{
+		m_transform = QTransform();
+
+		m_transform.rotate( m_rotation );
+
+		if( m_mirrored )
+			m_transform.scale( -1.0, 1.0 );
+	}
+	else
+		m_transform = QTransform();
 }
 
 bool
@@ -58,17 +124,23 @@ Frames::present( const QVideoFrame & frame )
 	if( m_counter == c_keyFrameChangesOn )
 		m_counter = 0;
 
-	if( m_counter == 0 )
 	{
-		if( !m_keyFrame.isNull() )
-			detectMotion( m_keyFrame, image );
+		QMutexLocker lock( &m_mutex );
 
-		m_keyFrame = image.copy( image.rect() );
+		QImage tmp = image.copy().transformed( m_transform );
 
-		emit newFrame( m_keyFrame );
+		if( m_counter == 0 )
+		{
+			if( !m_keyFrame.isNull() )
+				detectMotion( m_keyFrame, tmp );
+
+			m_keyFrame = tmp;
+
+			emit newFrame( m_keyFrame );
+		}
+		else
+			emit newFrame( tmp );
 	}
-	else
-		emit newFrame( image.copy( image.rect() ) );
 
 	++m_counter;
 
@@ -136,12 +208,14 @@ Frames::detectMotion( const QImage & key, const QImage & image )
 		const cv::Mat B = QImageToCvMat( image );
 
 		// Calculate the L2 relative error between images.
-		const double errorL2 = norm( A, B, CV_L2 );
+		const double errorL2 = cv::norm( A, B, CV_L2 );
 		// Convert to a reasonable scale, since L2 error is summed across
 		// all pixels of the image.
 		const double similarity = errorL2 / (double)( A.rows * A.cols );
 
-		detected = similarity > c_threshold;
+		detected = similarity > m_threshold;
+
+		emit imgDiff( similarity );
 	}
 	catch( const cv::Exception & )
 	{

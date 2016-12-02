@@ -52,6 +52,10 @@ public:
 	//! \return Cfg.
 	Cfg::Cfg cfg() const;
 
+public slots:
+	//! Img difference.
+	void imgDiff( qreal value );
+
 private slots:
 	//! Choose folder.
 	void chooseFolder();
