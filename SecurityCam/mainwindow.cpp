@@ -87,6 +87,8 @@ public:
 	void stopCamera();
 	//! Start clean timer.
 	void startCleanTimer();
+	//! Configure frames.
+	void configureFrames();
 
 	//! System tray icon.
 	QSystemTrayIcon * m_sysTray;
@@ -128,9 +130,32 @@ MainWindowPrivate::init()
 		initCamera();
 
 		startCleanTimer();
+
+		configureFrames();
 	}
 	else
 		q->options();
+}
+
+void
+MainWindowPrivate::configureFrames()
+{
+	m_takeImageInterval = m_cfg.snapshotTimeout();
+
+	m_takeImagesYetInterval = m_cfg.stopTimeout();
+
+	if( m_cfg.applyTransform() )
+	{
+		m_frames->setRotation( m_cfg.rotation() );
+
+		m_frames->setMirrored( m_cfg.mirrored() );
+
+		m_frames->applyTransform( true );
+	}
+	else
+		m_frames->applyTransform( false );
+
+	m_frames->setThreshold( m_cfg.threshold() );
 }
 
 void
@@ -392,22 +417,7 @@ MainWindow::options()
 
 		d->startCleanTimer();
 
-		d->m_takeImageInterval = d->m_cfg.snapshotTimeout();
-
-		d->m_takeImagesYetInterval = d->m_cfg.stopTimeout();
-
-		if( d->m_cfg.applyTransform() )
-		{
-			d->m_frames->setRotation( d->m_cfg.rotation() );
-
-			d->m_frames->setMirrored( d->m_cfg.mirrored() );
-
-			d->m_frames->applyTransform( true );
-		}
-		else
-			d->m_frames->applyTransform( false );
-
-		d->m_frames->setThreshold( d->m_cfg.threshold() );
+		d->configureFrames();
 
 		d->saveCfg();
 
@@ -570,7 +580,7 @@ MainWindow::clean()
 
 						const int dValue = dd.toInt( &ok );
 
-						if( ok && QDate( yValue, mValue, dValue ) < dt )
+						if( ok && QDate( yValue, mValue, dValue ) <= dt )
 						{
 							QDir r( d->m_cfg.folder() +
 								QLatin1String( "/" ) + y +
