@@ -27,6 +27,7 @@
 #include <QMainWindow>
 #include <QScopedPointer>
 #include <QSystemTrayIcon>
+#include <QCamera>
 
 
 namespace SecurityCam {
@@ -68,6 +69,8 @@ private slots:
 	void aboutQt();
 	//! Clean.
 	void clean();
+	//! Error in camera.
+	void cameraError();
 
 protected:
 	void closeEvent( QCloseEvent * e ) Q_DECL_OVERRIDE;

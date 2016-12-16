@@ -38,7 +38,6 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QAction>
-#include <QCamera>
 #include <QCameraImageCapture>
 #include <QApplication>
 #include <QCloseEvent>
@@ -212,6 +211,8 @@ MainWindowPrivate::readCfg()
 	return false;
 }
 
+static const int c_cameraReinitTimeout = 1000;
+
 void
 MainWindowPrivate::initCamera()
 {
@@ -244,6 +245,11 @@ MainWindowPrivate::initCamera()
 				m_cam->setCaptureMode( QCamera::CaptureStillImage );
 
 				m_cam->start();
+			}
+			else
+			{
+				QTimer::singleShot( c_cameraReinitTimeout,
+					[&] () { q->cameraError(); } );
 			}
 		}
 	}
@@ -326,6 +332,8 @@ MainWindowPrivate::initUi()
 		q, &MainWindow::takeImage );
 	MainWindow::connect( m_cleanTimer, &QTimer::timeout,
 		q, &MainWindow::clean );
+	MainWindow::connect( m_frames, &Frames::noFrames,
+		q, &MainWindow::cameraError );
 }
 
 void
@@ -604,6 +612,17 @@ MainWindow::clean()
 				year.removeRecursively();
 		}
 	}
+}
+
+void
+MainWindow::cameraError()
+{
+	d->stopCamera();
+
+	d->m_view->draw( QImage() );
+
+	QTimer::singleShot( c_cameraReinitTimeout, this,
+		[&] () { d->initCamera(); } );
 }
 
 } /* namespace SecurityCam */

@@ -27,6 +27,7 @@
 #include <QAbstractVideoSurface>
 #include <QTransform>
 #include <QMutex>
+#include <QTimer>
 
 // SecurityCam include.
 #include "cfg.hpp"
@@ -57,6 +58,8 @@ signals:
 	void noMoreMotions();
 	//! Images difference.
 	void imgDiff( qreal diff );
+	//! No frames.
+	void noFrames();
 
 public:
 	Frames( const Cfg::Cfg & cfg, QObject * parent );
@@ -89,6 +92,10 @@ private:
 	//! Detect motion.
 	void detectMotion( const QImage & key, const QImage & image );
 
+private slots:
+	//! No frames timeout.
+	void noFramesTimeout();
+
 private:
 	//! Key frame.
 	QImage m_keyFrame;
@@ -106,6 +113,8 @@ private:
 	qreal m_rotation;
 	//! Mirrored.
 	bool m_mirrored;
+	//! Timer.
+	QTimer * m_timer;
 }; // class Frames
 
 } /* namespace SecurityCam */

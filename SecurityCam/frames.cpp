@@ -29,9 +29,12 @@
 
 // Qt include.
 #include <QMutexLocker>
+#include <QTimer>
 
 
 namespace SecurityCam {
+
+static const int c_noFramesTimeout = 3000;
 
 //
 // Frames
@@ -44,9 +47,14 @@ Frames::Frames( const Cfg::Cfg & cfg, QObject * parent )
 	,	m_threshold( cfg.threshold() )
 	,	m_rotation( cfg.rotation() )
 	,	m_mirrored( cfg.mirrored() )
+	,	m_timer( new QTimer( this ) )
 {
 	if( cfg.applyTransform() )
 		applyTransform();
+
+	m_timer->setInterval( c_noFramesTimeout );
+
+	connect( m_timer, &QTimer::timeout, this, &Frames::noFramesTimeout );
 }
 
 qreal
@@ -143,6 +151,8 @@ Frames::present( const QVideoFrame & frame )
 	}
 
 	++m_counter;
+
+	m_timer->start();
 
 	return true;
 }
@@ -248,6 +258,14 @@ Frames::supportedPixelFormats( QAbstractVideoBuffer::HandleType type ) const
 		<< QVideoFrame::Format_RGB565
 		<< QVideoFrame::Format_RGB555
 		<< QVideoFrame::Format_ARGB8565_Premultiplied;
+}
+
+void
+Frames::noFramesTimeout()
+{
+	m_timer->stop();
+
+	emit noFrames();
 }
 
 } /* namespace SecurityCam */
