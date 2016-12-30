@@ -105,6 +105,8 @@ private:
 	bool m_motion;
 	//! Mutex.
 	mutable QMutex m_mutex;
+	//! Transformation applied.
+	bool m_transformApplied;
 	//! Transformation.
 	QTransform m_transform;
 	//! Threshold.

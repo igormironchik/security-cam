@@ -103,16 +103,27 @@ Frames::applyTransform( bool on )
 	QMutexLocker lock( &m_mutex );
 
 	if( on )
-	{
+	{		
 		m_transform = QTransform();
 
 		m_transform.rotate( m_rotation );
 
+		if( qAbs( m_rotation ) > 0.01 )
+			m_transformApplied = true;
+
 		if( m_mirrored )
+		{
 			m_transform.scale( -1.0, 1.0 );
+
+			m_transformApplied = true;
+		}
 	}
 	else
+	{
+		m_transformApplied = false;
+
 		m_transform = QTransform();
+	}
 }
 
 bool
@@ -135,7 +146,8 @@ Frames::present( const QVideoFrame & frame )
 	{
 		QMutexLocker lock( &m_mutex );
 
-		QImage tmp = image.copy().transformed( m_transform );
+		QImage tmp = ( m_transformApplied ? image.transformed( m_transform )
+			:	image.copy() );
 
 		if( m_counter == 0 )
 		{
@@ -146,7 +158,7 @@ Frames::present( const QVideoFrame & frame )
 
 			emit newFrame( m_keyFrame );
 		}
-		else
+		else if( m_motion )
 			emit newFrame( tmp );
 	}
 
