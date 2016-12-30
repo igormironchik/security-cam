@@ -53,6 +53,8 @@ private slots:
 	void quit();
 	//! Options.
 	void options();
+	//! Change resolution.
+	void resolution();
 	//! System tray activated.
 	void sysTrayActivated( QSystemTrayIcon::ActivationReason reason );
 	//! Motion detected.

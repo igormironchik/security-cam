@@ -116,6 +116,8 @@ OptionsPrivate::init()
 
 	m_ui.m_stopTimeout->setValue( m_cfg.stopTimeout() );
 
+	m_ui.m_threshold->setValue( m_cfg.threshold() );
+
 
 	Options::connect( m_ui.m_selectDir, &QToolButton::clicked,
 		q, &Options::chooseFolder );
@@ -152,6 +154,7 @@ Options::cfg() const
 	d->m_cfg.setMirrored( d->m_ui.m_mirrored->isChecked() );
 	d->m_cfg.setSnapshotTimeout( d->m_ui.m_snapshotTimeout->value() );
 	d->m_cfg.setStopTimeout( d->m_ui.m_stopTimeout->value() );
+	d->m_cfg.setThreshold( d->m_ui.m_threshold->value() );
 
 	return d->m_cfg;
 }

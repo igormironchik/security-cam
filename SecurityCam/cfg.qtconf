@@ -5,6 +5,32 @@
 
 		{namespace Cfg
 
+            |#
+                Resolution.
+            #|
+            {class Resolution
+                {tagScalar
+                    {valueType int}
+                    {name width}
+                    {defaultValue 0}
+                    {required}
+                }
+
+                {tagScalar
+                    {valueType int}
+                    {name height}
+                    {defaultValue 0}
+                    {required}
+                }
+
+                {tagScalar
+                    {valueType qreal}
+                    {name fps}
+                    {required}
+                }
+            }
+
+
 			|#
 				Cfg.
 			#|
@@ -61,6 +87,11 @@
                 {tagScalar
                     {valueType int}
                     {name stopTimeout}
+                }
+
+                {tag
+                    {valueType Resolution}
+                    {name resolution}
                 }
 			}
 

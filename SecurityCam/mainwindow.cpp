@@ -26,6 +26,7 @@
 #include "options.hpp"
 #include "frames.hpp"
 #include "view.hpp"
+#include "resolution.hpp"
 
 // QtConfFile include.
 #include <QtConfFile/Utils>
@@ -77,7 +78,7 @@ public:
 	//! Read cfg.
 	bool readCfg();
 	//! Init camera.
-	void initCamera();
+	void initCamera( bool initResolution = false );
 	//! Init UI.
 	void initUi();
 	//! Save cfg.
@@ -126,7 +127,7 @@ MainWindowPrivate::init()
 
 	if( readCfg() )
 	{
-		initCamera();
+		initCamera( m_cfg.resolution().width() != 0 );
 
 		startCleanTimer();
 
@@ -214,7 +215,7 @@ MainWindowPrivate::readCfg()
 static const int c_cameraReinitTimeout = 1000;
 
 void
-MainWindowPrivate::initCamera()
+MainWindowPrivate::initCamera( bool initResolution )
 {
 	if( !m_cfg.camera().isEmpty() )
 	{
@@ -245,6 +246,34 @@ MainWindowPrivate::initCamera()
 				m_cam->setCaptureMode( QCamera::CaptureStillImage );
 
 				m_cam->start();
+
+				if( initResolution )
+				{
+					const auto settings = m_cam->supportedViewfinderSettings();
+
+					QCameraViewfinderSettings toApply;
+
+					for( const auto & s : settings )
+					{
+						if( s.resolution().width() == m_cfg.resolution().width() &&
+							s.resolution().height() == m_cfg.resolution().height() &&
+							qAbs( s.maximumFrameRate() - m_cfg.resolution().fps() ) <= 0.001 )
+						{
+							toApply = s;
+
+							break;
+						}
+					}
+
+					if( !toApply.isNull() )
+					{
+						m_cam->stop();
+
+						m_cam->setViewfinderSettings( toApply );
+
+						m_cam->start();
+					}
+				}
 			}
 			else
 			{
@@ -267,6 +296,9 @@ MainWindowPrivate::initUi()
 
 	opts->addAction( QIcon( ":/img/configure.png" ),
 		MainWindow::tr( "&Settings"), q, &MainWindow::options );
+
+	opts->addAction( MainWindow::tr( "&Resolution" ), q,
+		&MainWindow::resolution );
 
 	QMenu * help = q->menuBar()->addMenu( MainWindow::tr( "&Help" ) );
 	help->addAction( MainWindow::tr( "About" ), q, &MainWindow::about );
@@ -419,7 +451,12 @@ MainWindow::options()
 		bool reinit = false;
 
 		if( d->m_cfg.camera() != c.camera() )
+		{
 			reinit = true;
+
+			d->m_cfg.resolution().setWidth( 0 );
+			d->m_cfg.resolution().setHeight( 0 );
+		}
 
 		d->m_cfg = c;
 
@@ -443,6 +480,29 @@ MainWindow::options()
 		d->initCamera();
 
 		d->startCleanTimer();
+
+		d->saveCfg();
+	}
+}
+
+void
+MainWindow::resolution()
+{
+	ResolutionDialog dlg( d->m_cam, d->m_cam->viewfinderSettings(), this );
+
+	if( QDialog::Accepted == dlg.exec() )
+	{
+		const QCameraViewfinderSettings s = dlg.settings();
+
+		d->m_cam->stop();
+
+		d->m_cam->setViewfinderSettings( s );
+
+		d->m_cam->start();
+
+		d->m_cfg.resolution().width() = s.resolution().width();
+		d->m_cfg.resolution().height() = s.resolution().height();
+		d->m_cfg.resolution().fps() = s.maximumFrameRate();
 
 		d->saveCfg();
 	}

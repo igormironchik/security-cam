@@ -31,13 +31,15 @@ HEADERS = mainwindow.hpp \
 	$$GENERATED \
     options.hpp \
     frames.hpp \
-    view.hpp
+    view.hpp \
+    resolution.hpp
 
 SOURCES = main.cpp \
 	mainwindow.cpp \
     options.cpp \
     frames.cpp \
-    view.cpp
+    view.cpp \
+    resolution.cpp
 	
 
 unix|win32: LIBS += -L$$OUT_PWD/../3rdparty/QtConfFile/lib/ -lQtConfFile
@@ -55,4 +57,5 @@ unix: LIBS += -lopencv_core
 win32: LIBS += -lopencv_core2413
 
 FORMS += \
-    options.ui
+    options.ui \
+    resolution.ui
