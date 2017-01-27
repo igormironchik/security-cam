@@ -607,7 +607,23 @@ MainWindow::aboutQt()
 void
 MainWindow::clean()
 {
-	d->m_cleanTimer->start( 24 * 60 * 60 * 1000 );
+	static auto isTimeLess =
+		[] ( const QTime & t1, const QTime & t2 ) -> bool
+		{
+			return ( ( t1.hour() == t2.hour() && t1.minute() == t2.minute() ) ? false :
+				( t2.hour() == 0 && t2.minute() == 0 ) ? true :
+				( t1.hour() < t2.hour() ) ? true :
+				( t1.hour() == t2.hour() ) ? t1.minute() < t2.minute() : false );
+		};
+
+	const QTime shouldBe = QTime::fromString( d->m_cfg.clearTime(),
+		QLatin1String( "hh:mm" ) );
+
+	while( isTimeLess( QTime::currentTime(), shouldBe ) )
+	{
+	}
+
+	d->startCleanTimer();
 
 	const QDate dt = QDate::currentDate().addDays( -d->m_cfg.storeDays() );
 
