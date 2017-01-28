@@ -621,6 +621,7 @@ MainWindow::clean()
 
 	while( isTimeLess( QTime::currentTime(), shouldBe ) )
 	{
+		QApplication::processEvents();
 	}
 
 	d->startCleanTimer();
