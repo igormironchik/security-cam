@@ -173,7 +173,6 @@ inline cv::Mat QImageToCvMat( const QImage & inImage )
 {
 	switch ( inImage.format() )
 	{
-		// 8-bit, 4 channel
 		case QImage::Format_ARGB32:
 		case QImage::Format_ARGB32_Premultiplied:
 		{
@@ -185,7 +184,6 @@ inline cv::Mat QImageToCvMat( const QImage & inImage )
 			return mat;
 		}
 
-		// 8-bit, 3 channel
 		case QImage::Format_RGB32:
 		case QImage::Format_RGB888:
 		{
@@ -200,17 +198,6 @@ inline cv::Mat QImageToCvMat( const QImage & inImage )
 				CV_8UC3,
 				const_cast< uchar* >( swapped.bits() ),
 				static_cast< size_t >( swapped.bytesPerLine() ) ).clone();
-		}
-
-		// 8-bit, 1 channel
-		case QImage::Format_Indexed8:
-		{
-			cv::Mat mat( inImage.height(), inImage.width(),
-				CV_8UC1,
-				const_cast< uchar* >( inImage.bits() ),
-				static_cast< size_t >( inImage.bytesPerLine() ) );
-
-			return mat;
 		}
 
 		default:
@@ -265,11 +252,7 @@ Frames::supportedPixelFormats( QAbstractVideoBuffer::HandleType type ) const
 	return QList< QVideoFrame::PixelFormat > ()
 		<< QVideoFrame::Format_ARGB32
 		<< QVideoFrame::Format_ARGB32_Premultiplied
-		<< QVideoFrame::Format_RGB32
-		<< QVideoFrame::Format_RGB24
-		<< QVideoFrame::Format_RGB565
-		<< QVideoFrame::Format_RGB555
-		<< QVideoFrame::Format_ARGB8565_Premultiplied;
+		<< QVideoFrame::Format_RGB32;
 }
 
 void
