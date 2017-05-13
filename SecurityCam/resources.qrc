@@ -9,5 +9,7 @@
 		<file>img/icon_64x64.png</file>
 		<file>img/icon_128x128.png</file>
 		<file>img/icon_256x256.png</file>
+		<file>img/qt.png</file>
+		<file>img/transform-scale.png</file>
 	</qresource>
 </RCC>

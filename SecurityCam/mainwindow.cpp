@@ -297,12 +297,15 @@ MainWindowPrivate::initUi()
 	opts->addAction( QIcon( ":/img/configure.png" ),
 		MainWindow::tr( "&Settings"), q, &MainWindow::options );
 
-	opts->addAction( MainWindow::tr( "&Resolution" ), q,
+	opts->addAction( QIcon( ":/img/transform-scale.png" ),
+		MainWindow::tr( "&Resolution" ), q,
 		&MainWindow::resolution );
 
 	QMenu * help = q->menuBar()->addMenu( MainWindow::tr( "&Help" ) );
-	help->addAction( MainWindow::tr( "About" ), q, &MainWindow::about );
-	help->addAction( MainWindow::tr( "About Qt" ), q, &MainWindow::aboutQt );
+	help->addAction( QIcon( ":/img/icon_22x22.png" ),
+		MainWindow::tr( "About" ), q, &MainWindow::about );
+	help->addAction( QIcon( ":/img/qt.png" ),
+		MainWindow::tr( "About Qt" ), q, &MainWindow::aboutQt );
 
 	if( QSystemTrayIcon::isSystemTrayAvailable() )
 	{
