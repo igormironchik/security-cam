@@ -36,7 +36,7 @@ namespace SecurityCam {
 
 class ViewPrivate {
 public:
-	ViewPrivate( View * parent )
+	explicit ViewPrivate( View * parent )
 		:	m_resized( false )
 		,	q( parent )
 	{
