@@ -2,7 +2,9 @@
 TEMPLATE = app
 DESTDIR = ..
 TARGET = SecurityCam.App
-QT += core gui widgets multimedia xml multimediawidgets
+QT += core gui widgets multimedia multimediawidgets
+DEFINES += CFGFILE_QT_SUPPORT ARGS_QSTRING_BUILD
+CONFIG += c++14
 
 TO_GENERATE = cfg.qtconf
 
@@ -15,7 +17,7 @@ generate_cfg.output = ${QMAKE_FILE_BASE}.hpp
 generate_cfg.CONFIG = no_link
 generate_cfg.variable_out = GENERATED
 
-generate_cfg.commands = $$shell_path( $$absolute_path( $${OUT_PWD}/../3rdparty/QtConfFile/qtconffile.generator ) ) \
+generate_cfg.commands = $$shell_path( $$absolute_path( $${OUT_PWD}/../3rdparty/cfgfile/cfgfile.generator ) ) \
 -i ${QMAKE_FILE_IN} \
 -o $${OUT_PWD}/${QMAKE_FILE_BASE}.hpp
 
@@ -42,15 +44,10 @@ SOURCES = main.cpp \
     resolution.cpp
 	
 
-unix|win32: LIBS += -L$$OUT_PWD/../3rdparty/QtConfFile/lib/ -lQtConfFile
+INCLUDEPATH += $$PWD/../3rdparty/cfgfile
+DEPENDPATH += $$PWD/../3rdparty/cfgfile
 
-INCLUDEPATH += $$PWD/../3rdparty/QtConfFile
-DEPENDPATH += $$PWD/../3rdparty/QtConfFile
-
-win32:!win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../3rdparty/QtConfFile/lib/QtConfFile.lib
-else:unix|win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../3rdparty/QtConfFile/lib/libQtConfFile.a
-
-include( ../3rdparty/QtArg/QtArg/qtarg.pri )
+include( ../3rdparty/Args/Args/Args.pri )
 
 unix: LIBS += -lopencv_core
 

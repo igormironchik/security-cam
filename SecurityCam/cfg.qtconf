@@ -90,7 +90,7 @@
                 }
 
                 {tag
-                    {valueType Resolution}
+                    {valueType SecurityCam::Cfg::Resolution}
                     {name resolution}
                 }
 			}

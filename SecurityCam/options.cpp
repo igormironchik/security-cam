@@ -142,19 +142,19 @@ Options::~Options()
 Cfg::Cfg
 Options::cfg() const
 {
-	d->m_cfg.setCamera( d->m_cameras.at(
+	d->m_cfg.set_camera( d->m_cameras.at(
 		d->m_ui.m_camera->currentIndex() ).deviceName() );
-	d->m_cfg.setFolder( d->m_ui.m_dir->text() );
-	d->m_cfg.setStoreDays( d->m_ui.m_clean->isChecked() ?
+	d->m_cfg.set_folder( d->m_ui.m_dir->text() );
+	d->m_cfg.set_storeDays( d->m_ui.m_clean->isChecked() ?
 		d->m_ui.m_storeDays->value() : 0 );
-	d->m_cfg.setClearTime( d->m_ui.m_cleanTime->time()
+	d->m_cfg.set_clearTime( d->m_ui.m_cleanTime->time()
 		.toString( QLatin1String( "hh:mm" ) ) );
-	d->m_cfg.setApplyTransform( d->m_ui.m_transformGroup->isChecked() );
-	d->m_cfg.setRotation( d->m_ui.m_rotation->value() );
-	d->m_cfg.setMirrored( d->m_ui.m_mirrored->isChecked() );
-	d->m_cfg.setSnapshotTimeout( d->m_ui.m_snapshotTimeout->value() );
-	d->m_cfg.setStopTimeout( d->m_ui.m_stopTimeout->value() );
-	d->m_cfg.setThreshold( d->m_ui.m_threshold->value() );
+	d->m_cfg.set_applyTransform( d->m_ui.m_transformGroup->isChecked() );
+	d->m_cfg.set_rotation( d->m_ui.m_rotation->value() );
+	d->m_cfg.set_mirrored( d->m_ui.m_mirrored->isChecked() );
+	d->m_cfg.set_snapshotTimeout( d->m_ui.m_snapshotTimeout->value() );
+	d->m_cfg.set_stopTimeout( d->m_ui.m_stopTimeout->value() );
+	d->m_cfg.set_threshold( d->m_ui.m_threshold->value() );
 
 	return d->m_cfg;
 }

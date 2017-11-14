@@ -28,11 +28,8 @@
 #include <QDebug>
 #include <QStandardPaths>
 
-// QtArg include.
-#include <QtArg/CmdLine>
-#include <QtArg/Arg>
-#include <QtArg/Help>
-#include <QtArg/Exceptions>
+// Args include.
+#include <Args/all.hpp>
 
 
 int main( int argc, char ** argv )
@@ -40,30 +37,24 @@ int main( int argc, char ** argv )
 	QString cfgFileName;
 
 	try {
-		QtArgCmdLine cmd( argc, argv );
+		Args::CmdLine cmd;
 
-		QtArg cfg( QLatin1Char( 'c' ), QLatin1String( "cfg" ),
-			QLatin1String( "Configuration file." ), false, true );
-		QtArgHelp help;
-		help.printer()->setExecutableName( argv[ 0 ] );
-		help.printer()->setProgramDescription(
-			QLatin1String( "Security USB camera." ) );
+		cmd.addArgWithFlagAndName( QLatin1Char( 'c' ), QLatin1String( "cfg" ),
+			true, false, QLatin1String( "Configuration file." ) )
+			.addHelp( true, argv[ 0 ], QLatin1String( "Security USB camera." ) );
 
-		cmd.addParseable( cfg );
-		cmd.addParseable( help );
+		cmd.parse( argc, argv );
 
-		cmd.parse();
-
-		if( cfg.isDefined() )
-			cfgFileName = cfg.value();
+		if( cmd.isDefined( QLatin1String( "-c" ) ) )
+			cfgFileName = cmd.value( QLatin1String( "-c" ) );
 	}
-	catch( const QtArgHelpHasPrintedEx & )
+	catch( const Args::HelpHasBeenPrintedException & )
 	{
 		return 0;
 	}
-	catch( const QtArgBaseException & x )
+	catch( const Args::BaseException & x )
 	{
-		qDebug() << x.whatAsQString();
+		qDebug() << x.desc() << "\n";
 
 		return 1;
 	}

@@ -28,9 +28,8 @@
 #include "view.hpp"
 #include "resolution.hpp"
 
-// QtConfFile include.
-#include <QtConfFile/Utils>
-#include <QtConfFile/Exceptions>
+// cfgfile include.
+#include <cfgfile/all.hpp>
 
 // Qt include.
 #include <QFileInfo>
@@ -46,6 +45,9 @@
 #include <QTimer>
 #include <QTime>
 #include <QDate>
+#include <QTextCodec>
+#include <QTextStream>
+#include <QFile>
 
 
 namespace SecurityCam {
@@ -182,24 +184,43 @@ MainWindowPrivate::readCfg()
 {
 	if( QFileInfo::exists( m_cfgFileName ) )
 	{
-		try {
-			Cfg::TagCfg tag;
+		QFile file( m_cfgFileName );
 
-			QtConfFile::readQtConfFile( tag, m_cfgFileName,
-				QTextCodec::codecForName( "UTF-8" ) );
+		if( file.open( QIODevice::ReadOnly ) )
+		{
+			try {
+				Cfg::tag_Cfg< cfgfile::qstring_trait_t > tag;
 
-			m_cfg = tag.getCfg();
+				QTextStream stream( &file );
+				stream.setCodec( QTextCodec::codecForName( "UTF-8" ) );
 
-			return true;
+				cfgfile::read_cfgfile( tag, stream, m_cfgFileName );
+
+				file.close();
+
+				m_cfg = tag.get_cfg();
+
+				return true;
+			}
+			catch( const cfgfile::exception_t< cfgfile::qstring_trait_t > & x )
+			{
+				file.close();
+
+				QMessageBox::critical( q,
+					MainWindow::tr( "Unable to load configuration..." ),
+					MainWindow::tr( "Unable to load configuration.\n"
+						"%1\n"
+						"Please configure application." )
+					.arg( x.desc() ) );
+			}
 		}
-		catch( const QtConfFile::Exception & x )
+		else
 		{
 			QMessageBox::critical( q,
 				MainWindow::tr( "Unable to load configuration..." ),
 				MainWindow::tr( "Unable to load configuration.\n"
-					"%1\n"
-					"Please configure application." )
-				.arg( x.whatAsQString() ) );
+					"Unable to open file \"%1\"." )
+				.arg( m_cfgFileName ) );
 		}
 	}
 	else
@@ -335,13 +356,13 @@ MainWindowPrivate::initUi()
 		m_sysTray->show();
 	}
 
-	m_cfg.setApplyTransform( false );
-	m_cfg.setRotation( 0.0 );
-	m_cfg.setMirrored( false );
-	m_cfg.setThreshold( 0.02 );
-	m_cfg.setSnapshotTimeout( 1500 );
-	m_cfg.setStopTimeout( 3000 );
-	m_cfg.setStoreDays( 0 );
+	m_cfg.set_applyTransform( false );
+	m_cfg.set_rotation( 0.0 );
+	m_cfg.set_mirrored( false );
+	m_cfg.set_threshold( 0.02 );
+	m_cfg.set_snapshotTimeout( 1500 );
+	m_cfg.set_stopTimeout( 3000 );
+	m_cfg.set_storeDays( 0 );
 
 	m_frames = new Frames( m_cfg, q );
 
@@ -380,19 +401,35 @@ MainWindowPrivate::saveCfg()
 	if( !dir.exists() )
 		dir.mkpath( info.absolutePath() );
 
-	try {
-		Cfg::TagCfg tag( m_cfg );
+	QFile file( m_cfgFileName );
 
-		QtConfFile::writeQtConfFile( tag, m_cfgFileName,
-			QTextCodec::codecForName( "UTF-8" ) );
-	}
-	catch( const QtConfFile::Exception & x )
+	if( file.open( QIODevice::WriteOnly ) )
 	{
+		try {
+			Cfg::tag_Cfg< cfgfile::qstring_trait_t > tag( m_cfg );
+
+			QTextStream stream( &file );
+			stream.setCodec( QTextCodec::codecForName( "UTF-8" ) );
+
+			cfgfile::write_cfgfile( tag, stream );
+
+			file.close();
+		}
+		catch( const cfgfile::exception_t< cfgfile::qstring_trait_t > & x )
+		{
+			file.close();
+
+			QMessageBox::critical( q,
+				MainWindow::tr( "Unable to save configuration..." ),
+				MainWindow::tr( "Unable to save configuration.\n"
+					"%1" ).arg( x.desc() ) );
+		}
+	}
+	else
 		QMessageBox::critical( q,
 			MainWindow::tr( "Unable to save configuration..." ),
 			MainWindow::tr( "Unable to save configuration.\n"
-				"%1" ).arg( x.whatAsQString() ) );
-	}
+				"Unable to open file \"%1\"." ).arg( m_cfgFileName ) );
 }
 
 void
@@ -457,8 +494,8 @@ MainWindow::options()
 		{
 			reinit = true;
 
-			d->m_cfg.resolution().setWidth( 0 );
-			d->m_cfg.resolution().setHeight( 0 );
+			d->m_cfg.resolution().set_width( 0 );
+			d->m_cfg.resolution().set_height( 0 );
 		}
 
 		d->m_cfg = c;

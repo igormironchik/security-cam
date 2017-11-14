@@ -1,6 +1,6 @@
-[submodule "3rdparty/QtConfFile"]
-	path = 3rdparty/QtConfFile
-	url = https://github.com/igormironchik/qt-conf-file.git
-[submodule "3rdparty/QtArg"]
-	path = 3rdparty/QtArg
-	url = https://github.com/igormironchik/qtargparser.git
+[submodule "3rdparty/Args"]
+	path = 3rdparty/Args
+	url = https://github.com/igormironchik/args-parser.git
+[submodule "3rdparty/cfgfile"]
+	path = 3rdparty/cfgfile
+	url = https://github.com/igormironchik/cfgfile.git
