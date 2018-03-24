@@ -739,7 +739,7 @@ MainWindow::cameraError()
 	d->m_view->draw( QImage() );
 
 	QTimer::singleShot( c_cameraReinitTimeout, this,
-		[&] () { d->initCamera(); } );
+		[&] () { d->initCamera( true ); } );
 }
 
 } /* namespace SecurityCam */
