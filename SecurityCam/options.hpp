@@ -30,6 +30,10 @@
 // SecurityCam include.
 #include "cfg.hpp"
 
+QT_BEGIN_NAMESPACE
+class QCameraInfo;
+QT_END_NAMESPACE
+
 
 namespace SecurityCam {
 
@@ -46,7 +50,7 @@ class Options Q_DECL_FINAL
 	Q_OBJECT
 
 public:
-	Options( const Cfg::Cfg & cfg, QWidget * parent );
+	Options( const Cfg::Cfg & cfg, QCameraInfo * camInfo, QWidget * parent );
 	~Options();
 
 	//! \return Cfg.

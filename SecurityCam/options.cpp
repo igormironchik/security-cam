@@ -49,7 +49,7 @@ public:
 	}
 
 	//! Init.
-	void init();
+	void init( QCameraInfo * camInfo );
 
 	//! Ui.
 	Ui::Options m_ui;
@@ -62,11 +62,14 @@ public:
 }; // class OptionsPrivate
 
 void
-OptionsPrivate::init()
+OptionsPrivate::init( QCameraInfo * camInfo )
 {
 	m_ui.setupUi( q );
 
 	m_cameras = QCameraInfo::availableCameras();
+
+	if( !m_cameras.contains( *camInfo ) )
+		m_cameras.push_back( *camInfo );
 
 	if( !m_cameras.isEmpty() )
 	{
@@ -128,11 +131,11 @@ OptionsPrivate::init()
 // Options
 //
 
-Options::Options( const Cfg::Cfg & cfg, QWidget * parent )
+Options::Options( const Cfg::Cfg & cfg, QCameraInfo * camInfo, QWidget * parent )
 	:	QDialog( parent )
 	,	d( new OptionsPrivate( this, cfg ) )
 {
-	d->init();
+	d->init( camInfo );
 }
 
 Options::~Options()

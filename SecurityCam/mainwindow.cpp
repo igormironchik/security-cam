@@ -63,6 +63,7 @@ public:
 	MainWindowPrivate( MainWindow * parent, const QString & cfgFileName )
 		:	m_sysTray( Q_NULLPTR )
 		,	m_cam( Q_NULLPTR )
+		,	m_currCamInfo( Q_NULLPTR )
 		,	m_capture( Q_NULLPTR )
 		,	m_isRecording( false )
 		,	m_takeImageInterval( 1500 )
@@ -98,6 +99,8 @@ public:
 	QSystemTrayIcon * m_sysTray;
 	//! Camera.
 	QCamera * m_cam;
+	//! Current camera info.
+	QScopedPointer< QCameraInfo > m_currCamInfo;
 	//! Capture.
 	QCameraImageCapture * m_capture;
 	//! Recording?
@@ -253,6 +256,8 @@ MainWindowPrivate::initCamera()
 				if( i.deviceName() == m_cfg.camera() )
 				{
 					info = i;
+
+					m_currCamInfo.reset( new QCameraInfo( info ) );
 
 					break;
 				}
@@ -425,6 +430,8 @@ MainWindowPrivate::stopCamera()
 		m_cam->deleteLater();
 
 		m_cam = Q_NULLPTR;
+
+		m_currCamInfo.reset();
 	}
 }
 
@@ -456,7 +463,7 @@ MainWindow::quit()
 void
 MainWindow::options()
 {
-	Options opts( d->m_cfg, this );
+	Options opts( d->m_cfg, d->m_currCamInfo.data(), this );
 
 	connect( d->m_frames, &Frames::imgDiff,
 		&opts, &Options::imgDiff, Qt::QueuedConnection );
