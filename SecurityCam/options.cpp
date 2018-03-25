@@ -68,7 +68,7 @@ OptionsPrivate::init( QCameraInfo * camInfo )
 
 	m_cameras = QCameraInfo::availableCameras();
 
-	if( !m_cameras.contains( *camInfo ) )
+	if( camInfo && !m_cameras.contains( *camInfo ) )
 		m_cameras.push_back( *camInfo );
 
 	if( !m_cameras.isEmpty() )
