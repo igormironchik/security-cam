@@ -73,6 +73,9 @@ private slots:
 	void clean();
 	//! Error in camera.
 	void cameraError();
+	//! Camera status changed.
+	void camStatusChanged( QCamera::Status st );
+
 
 protected:
 	void closeEvent( QCloseEvent * e ) Q_DECL_OVERRIDE;

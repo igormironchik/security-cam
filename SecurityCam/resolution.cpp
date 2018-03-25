@@ -24,11 +24,10 @@
 #include <QCamera>
 #include <QRegExp>
 
-#include <QDebug>
-
 // SecurityCam include.
 #include "resolution.hpp"
 #include "ui_resolution.h"
+#include "frames.hpp"
 
 
 namespace SecurityCam {
@@ -39,9 +38,11 @@ namespace SecurityCam {
 
 class ResolutionDialogPrivate {
 public:
-	ResolutionDialogPrivate( QCamera * cam, const QCameraViewfinderSettings & s,
+	ResolutionDialogPrivate( QCamera * cam, Frames * frames,
+		const QCameraViewfinderSettings & s,
 		ResolutionDialog * parent )
 		:	m_cam( cam )
+		,	m_frames( frames )
 		,	m_settings( s )
 		,	q( parent )
 	{
@@ -52,6 +53,8 @@ public:
 
 	//! Camera.
 	QCamera * m_cam;
+	//! Frames.
+	Frames * m_frames;
 	//! Settings.
 	QCameraViewfinderSettings m_settings;
 	//! Ui.
@@ -69,16 +72,19 @@ ResolutionDialogPrivate::init()
 
 	for( const auto & s : settings )
 	{
-		const QString data = QString::number( s.resolution().width() ) +
-			QLatin1Char( 'x' ) + QString::number( s.resolution().height() ) +
-			QLatin1Char( ' ' ) + QString::number( s.maximumFrameRate(), 'f', 0 ) +
-			QLatin1String( " fps" );
+		if( m_frames->supportedPixelFormats().contains( s.pixelFormat() ) )
+		{
+			const QString data = QString::number( s.resolution().width() ) +
+				QLatin1Char( 'x' ) + QString::number( s.resolution().height() ) +
+				QLatin1Char( ' ' ) + QString::number( s.maximumFrameRate(), 'f', 0 ) +
+				QLatin1String( " fps" );
 
-		m_ui.m_res->addItem( data );
+			m_ui.m_res->addItem( data );
 
-		if( s.resolution() == m_settings.resolution() &&
-			s.maximumFrameRate() == m_settings.maximumFrameRate() )
-				m_ui.m_res->setCurrentIndex( m_ui.m_res->count() - 1 );
+			if( s.resolution() == m_settings.resolution() &&
+				s.maximumFrameRate() == m_settings.maximumFrameRate() )
+					m_ui.m_res->setCurrentIndex( m_ui.m_res->count() - 1 );
+		}
 	}
 }
 
@@ -87,11 +93,11 @@ ResolutionDialogPrivate::init()
 // ResolutionDialog
 //
 
-ResolutionDialog::ResolutionDialog( QCamera * cam,
+ResolutionDialog::ResolutionDialog( QCamera * cam, Frames * frames,
 	const QCameraViewfinderSettings & s,
 	QWidget * parent )
 	:	QDialog( parent )
-	,	d( new ResolutionDialogPrivate( cam, s, this ) )
+	,	d( new ResolutionDialogPrivate( cam, frames, s, this ) )
 {
 	d->init();
 }

@@ -49,6 +49,8 @@
 #include <QTextStream>
 #include <QFile>
 
+#include <QDebug>
+
 
 namespace SecurityCam {
 
@@ -80,7 +82,7 @@ public:
 	//! Read cfg.
 	bool readCfg();
 	//! Init camera.
-	void initCamera( bool initResolution = false );
+	void initCamera();
 	//! Init UI.
 	void initUi();
 	//! Save cfg.
@@ -129,7 +131,7 @@ MainWindowPrivate::init()
 
 	if( readCfg() )
 	{
-		initCamera( m_cfg.resolution().width() != 0 );
+		initCamera();
 
 		startCleanTimer();
 
@@ -236,7 +238,7 @@ MainWindowPrivate::readCfg()
 static const int c_cameraReinitTimeout = 1000;
 
 void
-MainWindowPrivate::initCamera( bool initResolution )
+MainWindowPrivate::initCamera()
 {
 	if( !m_cfg.camera().isEmpty() )
 	{
@@ -260,6 +262,9 @@ MainWindowPrivate::initCamera( bool initResolution )
 			{
 				m_cam = new QCamera( info, q );
 
+				QObject::connect( m_cam, &QCamera::statusChanged,
+					q, &MainWindow::camStatusChanged );
+
 				m_cam->setViewfinder( m_frames );
 
 				m_capture = new QCameraImageCapture( m_cam, q );
@@ -267,34 +272,6 @@ MainWindowPrivate::initCamera( bool initResolution )
 				m_cam->setCaptureMode( QCamera::CaptureStillImage );
 
 				m_cam->start();
-
-				if( initResolution )
-				{
-					const auto settings = m_cam->supportedViewfinderSettings();
-
-					QCameraViewfinderSettings toApply;
-
-					for( const auto & s : settings )
-					{
-						if( s.resolution().width() == m_cfg.resolution().width() &&
-							s.resolution().height() == m_cfg.resolution().height() &&
-							qAbs( s.maximumFrameRate() - m_cfg.resolution().fps() ) <= 0.001 )
-						{
-							toApply = s;
-
-							break;
-						}
-					}
-
-					if( !toApply.isNull() )
-					{
-						m_cam->stop();
-
-						m_cam->setViewfinderSettings( toApply );
-
-						m_cam->start();
-					}
-				}
 			}
 			else
 			{
@@ -528,7 +505,7 @@ MainWindow::options()
 void
 MainWindow::resolution()
 {
-	ResolutionDialog dlg( d->m_cam, d->m_cam->viewfinderSettings(), this );
+	ResolutionDialog dlg( d->m_cam, d->m_frames, d->m_cam->viewfinderSettings(), this );
 
 	if( QDialog::Accepted == dlg.exec() )
 	{
@@ -739,7 +716,40 @@ MainWindow::cameraError()
 	d->m_view->draw( QImage() );
 
 	QTimer::singleShot( c_cameraReinitTimeout, this,
-		[&] () { d->initCamera( true ); } );
+		[&] () { d->initCamera(); } );
+}
+
+void
+MainWindow::camStatusChanged( QCamera::Status st )
+{
+	if( st == QCamera::LoadedStatus )
+	{
+		const auto settings = d->m_cam->supportedViewfinderSettings();
+
+		QCameraViewfinderSettings toApply;
+
+		for( const auto & s : settings )
+		{
+			if( s.resolution().width() == d->m_cfg.resolution().width() &&
+				s.resolution().height() == d->m_cfg.resolution().height() &&
+				qAbs( s.maximumFrameRate() - d->m_cfg.resolution().fps() ) <= 0.001 &&
+				d->m_frames->supportedPixelFormats().contains( s.pixelFormat() ) )
+			{
+				toApply = s;
+
+				break;
+			}
+		}
+
+		if( !toApply.isNull() )
+		{
+			d->m_cam->stop();
+
+			d->m_cam->setViewfinderSettings( toApply );
+
+			d->m_cam->start();
+		}
+	}
 }
 
 } /* namespace SecurityCam */

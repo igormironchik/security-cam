@@ -35,6 +35,8 @@ QT_END_NAMESPACE
 
 namespace SecurityCam {
 
+class Frames;
+
 //
 // ResolutionDialog
 //
@@ -48,7 +50,8 @@ class ResolutionDialog Q_DECL_FINAL
 	Q_OBJECT
 
 public:
-	ResolutionDialog( QCamera * cam, const QCameraViewfinderSettings & s,
+	ResolutionDialog( QCamera * cam, Frames * frames,
+		const QCameraViewfinderSettings & s,
 		QWidget * parent );
 	~ResolutionDialog();
 
