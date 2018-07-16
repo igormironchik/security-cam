@@ -1,5 +1,3 @@
-[![Donate](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/imironchik/donate)
-
 # About
 
 Simple security USB camera.
