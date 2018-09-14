@@ -739,8 +739,7 @@ MainWindow::camStatusChanged( QCamera::Status st )
 		{
 			if( s.resolution().width() == d->m_cfg.resolution().width() &&
 				s.resolution().height() == d->m_cfg.resolution().height() &&
-				qAbs( s.maximumFrameRate() - d->m_cfg.resolution().fps() ) <= 0.001 &&
-				d->m_frames->supportedPixelFormats().contains( s.pixelFormat() ) )
+				qAbs( s.maximumFrameRate() - d->m_cfg.resolution().fps() ) <= 0.001 )
 			{
 				toApply = s;
 
