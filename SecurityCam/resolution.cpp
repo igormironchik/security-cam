@@ -72,19 +72,16 @@ ResolutionDialogPrivate::init()
 
 	for( const auto & s : settings )
 	{
-		if( m_frames->supportedPixelFormats().contains( s.pixelFormat() ) )
-		{
-			const QString data = QString::number( s.resolution().width() ) +
-				QLatin1Char( 'x' ) + QString::number( s.resolution().height() ) +
-				QLatin1Char( ' ' ) + QString::number( s.maximumFrameRate(), 'f', 0 ) +
-				QLatin1String( " fps" );
+		const QString data = QString::number( s.resolution().width() ) +
+			QLatin1Char( 'x' ) + QString::number( s.resolution().height() ) +
+			QLatin1Char( ' ' ) + QString::number( s.maximumFrameRate(), 'f', 0 ) +
+			QLatin1String( " fps" );
 
-			m_ui.m_res->addItem( data );
+		m_ui.m_res->addItem( data );
 
-			if( s.resolution() == m_settings.resolution() &&
-				s.maximumFrameRate() == m_settings.maximumFrameRate() )
-					m_ui.m_res->setCurrentIndex( m_ui.m_res->count() - 1 );
-		}
+		if( s.resolution() == m_settings.resolution() &&
+			s.maximumFrameRate() == m_settings.maximumFrameRate() )
+				m_ui.m_res->setCurrentIndex( m_ui.m_res->count() - 1 );
 	}
 }
 
