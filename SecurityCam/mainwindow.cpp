@@ -385,7 +385,7 @@ MainWindowPrivate::initUi()
 	MainWindow::connect( m_frames, &Frames::noFrames,
 		q, &MainWindow::cameraError );
 	MainWindow::connect( m_frames, &Frames::fps,
-		q, &MainWindow::fps );
+		q, &MainWindow::fps, Qt::QueuedConnection );
 }
 
 void
@@ -785,12 +785,15 @@ MainWindow::fps( int v )
 void
 MainWindow::setStatusLabel()
 {
-	const auto s = d->m_cam->viewfinderSettings();
+	if( d->m_cam )
+	{
+		const auto s = d->m_cam->viewfinderSettings();
 
-	d->m_status->setText( tr( "%1x%2 | %3 fps" )
-		.arg( s.resolution().width() )
-		.arg( s.resolution().height() )
-		.arg( d->m_fps ) );
+		d->m_status->setText( tr( "%1x%2 | %3 fps" )
+			.arg( s.resolution().width() )
+			.arg( s.resolution().height() )
+			.arg( d->m_fps ) );
+	}
 }
 
 } /* namespace SecurityCam */
