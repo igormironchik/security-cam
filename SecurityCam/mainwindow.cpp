@@ -48,8 +48,8 @@
 #include <QTextCodec>
 #include <QTextStream>
 #include <QFile>
-
-#include <QDebug>
+#include <QStatusBar>
+#include <QLabel>
 
 
 namespace SecurityCam {
@@ -68,11 +68,13 @@ public:
 		,	m_isRecording( false )
 		,	m_takeImageInterval( 1500 )
 		,	m_takeImagesYetInterval( 3 * 1000 )
+		,	m_fps( 0 )
 		,	m_stopTimer( Q_NULLPTR )
 		,	m_timer( Q_NULLPTR )
 		,	m_cleanTimer( Q_NULLPTR )
 		,	m_frames( Q_NULLPTR )
 		,	m_view( Q_NULLPTR )
+		,	m_status( Q_NULLPTR )
 		,	m_cfgFileName( cfgFileName )
 		,	q( parent )
 	{
@@ -109,6 +111,8 @@ public:
 	int m_takeImageInterval;
 	//! How long should images be taken after no motion.
 	int m_takeImagesYetInterval;
+	//! Current FPS.
+	int m_fps;
 	//! Stop timer.
 	QTimer * m_stopTimer;
 	//! Take image timer.
@@ -119,6 +123,8 @@ public:
 	Frames * m_frames;
 	//! View.
 	View * m_view;
+	//! Status label.
+	QLabel * m_status;
 	//! Configuration.
 	Cfg::Cfg m_cfg;
 	//! Cfg file.
@@ -276,6 +282,8 @@ MainWindowPrivate::initCamera()
 
 				m_cam->setCaptureMode( QCamera::CaptureStillImage );
 
+				q->setStatusLabel();
+
 				m_cam->start();
 			}
 			else
@@ -358,6 +366,10 @@ MainWindowPrivate::initUi()
 
 	m_cleanTimer = new QTimer( q );
 
+	m_status = new QLabel( q );
+
+	q->statusBar()->addPermanentWidget( m_status );
+
 	MainWindow::connect( m_frames, &Frames::newFrame,
 		m_view, &View::draw, Qt::QueuedConnection );
 	MainWindow::connect( m_frames, &Frames::motionDetected,
@@ -372,6 +384,8 @@ MainWindowPrivate::initUi()
 		q, &MainWindow::clean );
 	MainWindow::connect( m_frames, &Frames::noFrames,
 		q, &MainWindow::cameraError );
+	MainWindow::connect( m_frames, &Frames::fps,
+		q, &MainWindow::fps );
 }
 
 void
@@ -753,9 +767,30 @@ MainWindow::camStatusChanged( QCamera::Status st )
 
 			d->m_cam->setViewfinderSettings( toApply );
 
+			setStatusLabel();
+
 			d->m_cam->start();
 		}
 	}
+}
+
+void
+MainWindow::fps( int v )
+{
+	d->m_fps = v;
+
+	setStatusLabel();
+}
+
+void
+MainWindow::setStatusLabel()
+{
+	const auto s = d->m_cam->viewfinderSettings();
+
+	d->m_status->setText( tr( "%1x%2 | %3 fps" )
+		.arg( s.resolution().width() )
+		.arg( s.resolution().height() )
+		.arg( d->m_fps ) );
 }
 
 } /* namespace SecurityCam */

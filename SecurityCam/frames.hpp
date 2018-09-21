@@ -60,6 +60,8 @@ signals:
 	void imgDiff( qreal diff );
 	//! No frames.
 	void noFrames();
+	//! FPS.
+	void fps( int v );
 
 public:
 	Frames( const Cfg::Cfg & cfg, QObject * parent );
@@ -95,6 +97,8 @@ private:
 private slots:
 	//! No frames timeout.
 	void noFramesTimeout();
+	//! 1 second.
+	void second();
 
 private:
 	//! Key frame.
@@ -117,6 +121,10 @@ private:
 	bool m_mirrored;
 	//! Timer.
 	QTimer * m_timer;
+	//! 1 second timer.
+	QTimer * m_secTimer;
+	//! FPS.
+	int m_fps;
 }; // class Frames
 
 } /* namespace SecurityCam */

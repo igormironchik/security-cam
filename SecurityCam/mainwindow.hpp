@@ -75,6 +75,10 @@ private slots:
 	void cameraError();
 	//! Camera status changed.
 	void camStatusChanged( QCamera::Status st );
+	//! FPS.
+	void fps( int v );
+	//! Set status label.
+	void setStatusLabel();
 
 
 protected:

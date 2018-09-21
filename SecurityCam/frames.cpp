@@ -48,13 +48,19 @@ Frames::Frames( const Cfg::Cfg & cfg, QObject * parent )
 	,	m_rotation( cfg.rotation() )
 	,	m_mirrored( cfg.mirrored() )
 	,	m_timer( new QTimer( this ) )
+	,	m_secTimer( new QTimer( this ) )
+	,	m_fps( 0 )
 {
 	if( cfg.applyTransform() )
 		applyTransform();
 
 	m_timer->setInterval( c_noFramesTimeout );
+	m_secTimer->setInterval( 1000 );
 
 	connect( m_timer, &QTimer::timeout, this, &Frames::noFramesTimeout );
+	connect( m_secTimer, &QTimer::timeout, this, &Frames::second );
+
+	m_secTimer->start();
 }
 
 qreal
@@ -163,6 +169,7 @@ Frames::present( const QVideoFrame & frame )
 	}
 
 	++m_counter;
+	++m_fps;
 
 	m_timer->start();
 
@@ -262,6 +269,14 @@ Frames::noFramesTimeout()
 	m_timer->stop();
 
 	emit noFrames();
+}
+
+void
+Frames::second()
+{
+	emit fps( m_fps );
+
+	m_fps = 0;
 }
 
 } /* namespace SecurityCam */
