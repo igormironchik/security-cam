@@ -367,6 +367,7 @@ MainWindowPrivate::initUi()
 	m_cleanTimer = new QTimer( q );
 
 	m_status = new QLabel( q );
+	m_status->setText( MainWindow::tr( "Camera is not ready." ) );
 
 	q->statusBar()->addPermanentWidget( m_status );
 
@@ -793,6 +794,10 @@ MainWindow::setStatusLabel()
 			.arg( s.resolution().width() )
 			.arg( s.resolution().height() )
 			.arg( d->m_fps ) );
+	}
+	else
+	{
+		d->m_status->setText( tr( "Camera is not ready." ) );
 	}
 }
 
