@@ -551,7 +551,10 @@ void
 MainWindow::sysTrayActivated( QSystemTrayIcon::ActivationReason reason )
 {
 	if( reason == QSystemTrayIcon::Trigger )
+	{
 		show();
+		raise();
+	}
 }
 
 void
