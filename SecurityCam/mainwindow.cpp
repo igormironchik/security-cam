@@ -554,6 +554,7 @@ MainWindow::sysTrayActivated( QSystemTrayIcon::ActivationReason reason )
 	{
 		show();
 		raise();
+		activateWindow();
 	}
 }
 
