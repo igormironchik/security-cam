@@ -1,5 +1,7 @@
 # About
 
+![SecurityCam Logo](https://image.ibb.co/eznirz/securitycam_logo_256x256.png)
+
 Simple security USB camera.
 
 Camera detects motions and starts making photos. Photos stores in the
