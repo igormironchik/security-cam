@@ -1,15 +1,15 @@
 <RCC>
-	<qresource prefix="/">
-		<file>img/application-exit.png</file>
-		<file>img/configure.png</file>
-		<file>img/icon_16x16.png</file>
-		<file>img/icon_22x22.png</file>
-		<file>img/icon_32x32.png</file>
-		<file>img/icon_48x48.png</file>
-		<file>img/icon_64x64.png</file>
-		<file>img/icon_128x128.png</file>
-		<file>img/icon_256x256.png</file>
-		<file>img/qt.png</file>
-		<file>img/transform-scale.png</file>
-	</qresource>
+    <qresource prefix="/">
+        <file>img/application-exit.png</file>
+        <file>img/configure.png</file>
+        <file>img/qt.png</file>
+        <file>img/transform-scale.png</file>
+        <file>logo/img/icon_16x16.png</file>
+        <file>logo/img/icon_22x22.png</file>
+        <file>logo/img/icon_32x32.png</file>
+        <file>logo/img/icon_48x48.png</file>
+        <file>logo/img/icon_64x64.png</file>
+        <file>logo/img/icon_128x128.png</file>
+        <file>logo/img/icon_256x256.png</file>
+    </qresource>
 </RCC>

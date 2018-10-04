@@ -313,7 +313,7 @@ MainWindowPrivate::initUi()
 		&MainWindow::resolution );
 
 	QMenu * help = q->menuBar()->addMenu( MainWindow::tr( "&Help" ) );
-	help->addAction( QIcon( ":/img/icon_22x22.png" ),
+	help->addAction( QIcon( ":/logo/img/icon_22x22.png" ),
 		MainWindow::tr( "About" ), q, &MainWindow::about );
 	help->addAction( QIcon( ":/img/qt.png" ),
 		MainWindow::tr( "About Qt" ), q, &MainWindow::aboutQt );
@@ -322,13 +322,13 @@ MainWindowPrivate::initUi()
 	{
 		m_sysTray = new QSystemTrayIcon( q );
 
-		QIcon icon( ":/img/icon_256x256.png" );
-		icon.addFile( ":/img/icon_128x128.png" );
-		icon.addFile( ":/img/icon_64x64.png" );
-		icon.addFile( ":/img/icon_48x48.png" );
-		icon.addFile( ":/img/icon_32x32.png" );
-		icon.addFile( ":/img/icon_22x22.png" );
-		icon.addFile( ":/img/icon_16x16.png" );
+		QIcon icon( ":/logo/img/icon_256x256.png" );
+		icon.addFile( ":/logo/img/icon_128x128.png" );
+		icon.addFile( ":/logo/img/icon_64x64.png" );
+		icon.addFile( ":/logo/img/icon_48x48.png" );
+		icon.addFile( ":/logo/img/icon_32x32.png" );
+		icon.addFile( ":/logo/img/icon_22x22.png" );
+		icon.addFile( ":/logo/img/icon_16x16.png" );
 
 		m_sysTray->setIcon( icon );
 
