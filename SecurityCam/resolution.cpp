@@ -99,7 +99,7 @@ ResolutionDialog::ResolutionDialog( QCamera * cam, Frames * frames,
 	d->init();
 }
 
-ResolutionDialog::~ResolutionDialog()
+ResolutionDialog::~ResolutionDialog() noexcept
 {
 }
 

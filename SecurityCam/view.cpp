@@ -71,7 +71,7 @@ View::View( QWidget * parent )
 	d->init();
 }
 
-View::~View()
+View::~View() noexcept
 {
 }
 

@@ -461,7 +461,7 @@ MainWindow::MainWindow( const QString & cfgFileName )
 	d->init();
 }
 
-MainWindow::~MainWindow()
+MainWindow::~MainWindow() noexcept
 {
 }
 

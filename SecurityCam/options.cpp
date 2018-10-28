@@ -138,7 +138,7 @@ Options::Options( const Cfg::Cfg & cfg, QCameraInfo * camInfo, QWidget * parent 
 	d->init( camInfo );
 }
 
-Options::~Options()
+Options::~Options() noexcept
 {
 }
 

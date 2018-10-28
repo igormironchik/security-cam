@@ -20,8 +20,8 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SECURITYCAM__VIEW_HPP__INCLUDED
-#define SECURITYCAM__VIEW_HPP__INCLUDED
+#ifndef SECURITYCAM_VIEW_HPP_INCLUDED
+#define SECURITYCAM_VIEW_HPP_INCLUDED
 
 // Qt include.
 #include <QWidget>
@@ -37,22 +37,22 @@ namespace SecurityCam {
 class ViewPrivate;
 
 //! View of the video data from the camera.
-class View Q_DECL_FINAL
+class View final
 	:	public QWidget
 {
 	Q_OBJECT
 
 public:
 	explicit View( QWidget * parent );
-	~View();
+	~View() noexcept override;
 
 public slots:
 	//! Draw image.
 	void draw( const QImage & image );
 
 protected:
-	void paintEvent( QPaintEvent * ) Q_DECL_OVERRIDE;
-	void resizeEvent( QResizeEvent * e ) Q_DECL_OVERRIDE;
+	void paintEvent( QPaintEvent * ) override;
+	void resizeEvent( QResizeEvent * e ) override;
 
 private:
 	Q_DISABLE_COPY( View )
@@ -62,4 +62,4 @@ private:
 
 } /* namespace SecurityCam */
 
-#endif // SECURITYCAM__VIEW_HPP__INCLUDED
+#endif // SECURITYCAM_VIEW_HPP_INCLUDED

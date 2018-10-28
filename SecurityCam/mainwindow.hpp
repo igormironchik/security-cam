@@ -20,8 +20,8 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SECURITYCAM__MAINWINDOW_HPP__INCLUDED
-#define SECURITYCAM__MAINWINDOW_HPP__INCLUDED
+#ifndef SECURITYCAM_MAINWINDOW_HPP_INCLUDED
+#define SECURITYCAM_MAINWINDOW_HPP_INCLUDED
 
 // Qt include.
 #include <QMainWindow>
@@ -39,14 +39,14 @@ namespace SecurityCam {
 class MainWindowPrivate;
 
 //! Main window of the application.
-class MainWindow Q_DECL_FINAL
+class MainWindow final
 	:	public QMainWindow
 {
 	Q_OBJECT
 
 public:
 	explicit MainWindow( const QString & cfgFileName );
-	~MainWindow();
+	~MainWindow() noexcept override;
 
 private slots:
 	//! Quit.
@@ -82,7 +82,7 @@ private slots:
 
 
 protected:
-	void closeEvent( QCloseEvent * e ) Q_DECL_OVERRIDE;
+	void closeEvent( QCloseEvent * e ) override;
 
 private:
 	friend class MainWindowPrivate;
@@ -94,4 +94,4 @@ private:
 
 } /* namespace SecurityCam */
 
-#endif // SECURITYCAM__MAINWINDOW_HPP__INCLUDED
+#endif // SECURITYCAM_MAINWINDOW_HPP_INCLUDED

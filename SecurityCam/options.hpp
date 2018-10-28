@@ -20,8 +20,8 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SECURITYCAM__OPTIONS_HPP__INCLUDED
-#define SECURITYCAM__OPTIONS_HPP__INCLUDED
+#ifndef SECURITYCAM_OPTIONS_HPP_INCLUDED
+#define SECURITYCAM_OPTIONS_HPP_INCLUDED
 
 // Qt include.
 #include <QDialog>
@@ -44,14 +44,14 @@ namespace SecurityCam {
 class OptionsPrivate;
 
 //! Options of the application.
-class Options Q_DECL_FINAL
+class Options final
 	:	public QDialog
 {
 	Q_OBJECT
 
 public:
 	Options( const Cfg::Cfg & cfg, QCameraInfo * camInfo, QWidget * parent );
-	~Options();
+	~Options() noexcept override;
 
 	//! \return Cfg.
 	Cfg::Cfg cfg() const;
@@ -74,4 +74,4 @@ private:
 
 } // namespace SecurityCam
 
-#endif // SECURITYCAM__OPTIONS_HPP__INCLUDED
+#endif // SECURITYCAM_OPTIONS_HPP_INCLUDED

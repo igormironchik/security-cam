@@ -20,8 +20,8 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SECURITYCAM__FRAMES_HPP__INCLUDED
-#define SECURITYCAM__FRAMES_HPP__INCLUDED
+#ifndef SECURITYCAM_FRAMES_HPP_INCLUDED
+#define SECURITYCAM_FRAMES_HPP_INCLUDED
 
 // Qt include.
 #include <QAbstractVideoSurface>
@@ -44,7 +44,7 @@ static const int c_keyFrameChangesOn = 10;
 //
 
 //! Frames listener.
-class Frames Q_DECL_FINAL
+class Frames final
 	:	public QAbstractVideoSurface
 {
 	Q_OBJECT
@@ -84,11 +84,11 @@ public:
 	//! Apply new transformations.
 	void applyTransform( bool on = true );
 
-	bool present( const QVideoFrame & frame ) Q_DECL_OVERRIDE;
+	bool present( const QVideoFrame & frame ) override;
 
 	QList< QVideoFrame::PixelFormat > supportedPixelFormats(
 		QAbstractVideoBuffer::HandleType type =
-			QAbstractVideoBuffer::NoHandle ) const Q_DECL_OVERRIDE;
+			QAbstractVideoBuffer::NoHandle ) const override;
 
 private:
 	//! Detect motion.
@@ -129,4 +129,4 @@ private:
 
 } /* namespace SecurityCam */
 
-#endif // SECURITYCAM__FRAMES_HPP__INCLUDED
+#endif // SECURITYCAM_FRAMES_HPP_INCLUDED

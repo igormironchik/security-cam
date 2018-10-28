@@ -20,8 +20,8 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SECURITYCAM__RESOLUTION_HPP__INCLUDED
-#define SECURITYCAM__RESOLUTION_HPP__INCLUDED
+#ifndef SECURITYCAM_RESOLUTION_HPP_INCLUDED
+#define SECURITYCAM_RESOLUTION_HPP_INCLUDED
 
 // Qt include.
 #include <QDialog>
@@ -44,7 +44,7 @@ class Frames;
 class ResolutionDialogPrivate;
 
 //! Dialog with resolution settings.
-class ResolutionDialog Q_DECL_FINAL
+class ResolutionDialog final
 	:	public QDialog
 {
 	Q_OBJECT
@@ -53,7 +53,7 @@ public:
 	ResolutionDialog( QCamera * cam, Frames * frames,
 		const QCameraViewfinderSettings & s,
 		QWidget * parent );
-	~ResolutionDialog();
+	~ResolutionDialog() noexcept override;
 
 	//! \return Selected settings.
 	QCameraViewfinderSettings settings() const;
@@ -66,4 +66,4 @@ private:
 
 } /* namespace SecurityCam */
 
-#endif // SECURITYCAM__RESOLUTION_HPP__INCLUDED
+#endif // SECURITYCAM_RESOLUTION_HPP_INCLUDED
