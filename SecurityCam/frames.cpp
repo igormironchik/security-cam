@@ -264,6 +264,8 @@ Frames::supportedPixelFormats( QAbstractVideoBuffer::HandleType type ) const
 void
 Frames::noFramesTimeout()
 {
+	QMutexLocker lock( &m_mutex );
+
 	m_timer->stop();
 
 	emit noFrames();
@@ -272,6 +274,8 @@ Frames::noFramesTimeout()
 void
 Frames::second()
 {
+	QMutexLocker lock( &m_mutex );
+
 	emit fps( m_fps );
 
 	m_fps = 0;
