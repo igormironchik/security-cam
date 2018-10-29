@@ -42,9 +42,6 @@ public:
 	{
 	}
 
-	//! Init.
-	void init();
-
 	//! Image.
 	QImage m_image;
 	//! Resized?
@@ -52,12 +49,6 @@ public:
 	//! Parent.
 	View * q;
 }; // class ViewPrivate
-
-void
-ViewPrivate::init()
-{
-	q->setAutoFillBackground( false );
-}
 
 
 //
@@ -68,7 +59,6 @@ View::View( QWidget * parent )
 	:	QWidget( parent )
 	,	d( new ViewPrivate( this ) )
 {
-	d->init();
 }
 
 View::~View() noexcept
@@ -91,7 +81,6 @@ View::paintEvent( QPaintEvent * )
 	if( isVisible() )
 	{
 		QPainter p( this );
-		p.setBackground( Qt::black );
 
 		if( !d->m_image.isNull() )
 		{
