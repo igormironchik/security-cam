@@ -101,6 +101,8 @@ private slots:
 	void second();
 
 private:
+	Q_DISABLE_COPY( Frames )
+
 	//! Key frame.
 	QImage m_keyFrame;
 	//! Frames counter.
