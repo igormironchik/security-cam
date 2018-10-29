@@ -138,6 +138,8 @@ Frames::present( const QVideoFrame & frame )
 	if( !isActive() )
 		return false;
 
+	QMutexLocker lock( &m_mutex );
+
 	QVideoFrame f = frame;
 	f.map( QAbstractVideoBuffer::ReadOnly );
 
@@ -149,24 +151,20 @@ Frames::present( const QVideoFrame & frame )
 	if( m_counter == c_keyFrameChangesOn )
 		m_counter = 0;
 
+	QImage tmp = ( m_transformApplied ? image.transformed( m_transform )
+		:	image.copy() );
+
+	if( m_counter == 0 )
 	{
-		QMutexLocker lock( &m_mutex );
+		if( !m_keyFrame.isNull() )
+			detectMotion( m_keyFrame, tmp );
 
-		QImage tmp = ( m_transformApplied ? image.transformed( m_transform )
-			:	image.copy() );
+		m_keyFrame = tmp;
 
-		if( m_counter == 0 )
-		{
-			if( !m_keyFrame.isNull() )
-				detectMotion( m_keyFrame, tmp );
-
-			m_keyFrame = tmp;
-
-			emit newFrame( m_keyFrame );
-		}
-		else if( m_motion )
-			emit newFrame( tmp );
+		emit newFrame( m_keyFrame );
 	}
+	else if( m_motion )
+		emit newFrame( tmp );
 
 	++m_counter;
 	++m_fps;
