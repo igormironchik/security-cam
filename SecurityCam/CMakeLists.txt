@@ -39,10 +39,12 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/cfgfile
 	${CMAKE_CURRENT_BINARY_DIR} )
 
 add_custom_target( cfgGen
-	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/../3rdparty/cfgfile/generator/cfgfile.generator -i ${CMAKE_CURRENT_SOURCE_DIR}/cfg.qtconf -o ${CMAKE_CURRENT_BINARY_DIR}/cfg.hpp
+   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/../3rdparty/cfgfile/generator/cfgfile.generator${CMAKE_EXECUTABLE_SUFFIX} -i ${CMAKE_CURRENT_SOURCE_DIR}/cfg.qtconf -o ${CMAKE_CURRENT_BINARY_DIR}/cfg.hpp
 	)
 
 add_executable( SecurityCam.App ${SRC} )
+
+add_dependencies( cfgGen cfgfile.generator )
 
 add_dependencies( SecurityCam.App cfgGen )
 
