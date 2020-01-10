@@ -1,6 +1,6 @@
 # About
 
-![SecurityCam Logo](https://image.ibb.co/eznirz/securitycam_logo_256x256.png)
+![SecurityCam Logo](SecurityCam/logo/logotype/logotype.svg.png)
 
 Simple security USB camera.
 
