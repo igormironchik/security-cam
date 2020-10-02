@@ -58,8 +58,7 @@ jobs:
         
     - run: sudo apt install libopencv-dev
     
-    - run: sudo ln -s /usr/include/opencv4/opencv2/ /usr/include/opencv2
-      if: test -d /usr/include/opencv4/opencv2/
+    - run: sudo ln -s /usr/include/opencv4/opencv2/ /usr/include/opencv2 || exit 0;
 
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
