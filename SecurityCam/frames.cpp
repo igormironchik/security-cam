@@ -24,7 +24,7 @@
 #include "frames.hpp"
 
 // OpenCV include.
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
 #include <opencv2/core/core_c.h>
 
 // Qt include.
@@ -109,7 +109,7 @@ Frames::applyTransform( bool on )
 	QMutexLocker lock( &m_mutex );
 
 	if( on )
-	{		
+	{
 		m_transform = QTransform();
 
 		m_transform.rotate( m_rotation );
