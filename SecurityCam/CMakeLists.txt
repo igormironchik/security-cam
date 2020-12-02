@@ -48,5 +48,5 @@ add_dependencies( cfgGen cfgfile.generator )
 
 add_dependencies( SecurityCam.App cfgGen )
 
-target_link_libraries( SecurityCam.App ${OpenCV_LIBRARIES}
-	Qt5::MultimediaWidgets Qt5::Multimedia Qt5::Widgets Qt5::Gui Qt5::Core )
+target_link_libraries( SecurityCam.App Qt5::MultimediaWidgets Qt5::Multimedia Qt5::Widgets
+	Qt5::Gui Qt5::Core ${OpenCV_LIBRARIES} )
