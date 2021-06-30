@@ -23,3 +23,7 @@ After clone update submodules with the next command:
 ```
 git submodule update --init --recursive
 ```
+
+# Donate
+
+[Donate with BTC](https://github.com/igormironchik)
