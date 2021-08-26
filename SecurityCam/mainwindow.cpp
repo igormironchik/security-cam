@@ -288,7 +288,7 @@ MainWindowPrivate::initCamera()
 			}
 			else
 			{
-				QTimer::singleShot( c_cameraReinitTimeout,
+				QTimer::singleShot( c_cameraReinitTimeout, q,
 					[&] () { q->cameraError(); } );
 			}
 		}
