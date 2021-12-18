@@ -23,7 +23,3 @@ After clone update submodules with the next command:
 ```
 git submodule update --init --recursive
 ```
-
-# Donate
-
-[![](bitcoin-btc-logo-full.png)](https://github.com/igormironchik)
