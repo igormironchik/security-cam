@@ -36,6 +36,7 @@
 #include <QMediaDevices>
 #include <QDateTime>
 #include <QDir>
+#include <QImageCapture>
 
 // libyuv include.
 #include <libyuv.h>
@@ -62,6 +63,7 @@ Frames::Frames( const Cfg::Cfg & cfg, QObject * parent )
 	,	m_timer( new QTimer( this ) )
 	,	m_secTimer( new QTimer( this ) )
 	,	m_fps( 0 )
+	,	m_imgCapture( nullptr )
 {
 	if( cfg.applyTransform() )
 		applyTransform();
@@ -385,14 +387,36 @@ Frames::initCam( const QString & name )
 			}
 		}
 
+		if( m_cam )
+			m_cam->deleteLater();
+
 		m_cam = new QCamera( dev, this );
+
+		if( !m_imgCapture )
+		{
+			m_imgCapture = new QImageCapture( this );
+			m_imgCapture->setFileFormat( QImageCapture::JPEG );
+
+			connect( m_imgCapture, &QImageCapture::imageCaptured,
+				this, &Frames::imageCaptured );
+		}
 
 		m_cam->setFocusMode( QCamera::FocusModeAuto );
 		m_capture.setCamera( m_cam );
 		m_capture.setVideoSink( this );
+		m_capture.setImageCapture( m_imgCapture );
 
 		m_cam->start();
 	}
+}
+
+void
+Frames::imageCaptured( int id, const QImage & img )
+{
+	const auto fileName = m_fileNames[ id ];
+	m_fileNames.remove( id );
+	const auto toSave = img.transformed( m_transform );
+	toSave.save( fileName );
 }
 
 void
@@ -432,7 +456,11 @@ Frames::takeImage( const QString & dirName )
 	dir.mkpath( path );
 
 	const auto fileName = path +
-		current.toString( QLatin1String( "hh.mm.ss" ) );
+		current.toString( QStringLiteral( "hh.mm.ss" ) ) + QStringLiteral( ".jpg" );
+
+	const auto id = m_imgCapture->capture();
+
+	m_fileNames.insert( id, fileName );
 }
 
 } /* namespace Stock */

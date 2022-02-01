@@ -28,6 +28,7 @@
 #include <QCamera>
 #include <QMediaCaptureSession>
 #include <QMutex>
+#include <QMap>
 
 // SecurityCam include.
 #include "cfg.hpp"
@@ -110,6 +111,8 @@ private slots:
 	void noFramesTimeout();
 	//! 1 second.
 	void second();
+	//! Image captured.
+	void imageCaptured( int id, const QImage & img );
 
 private:
 	//! Detect motion.
@@ -150,6 +153,10 @@ private:
 	QTimer * m_secTimer;
 	//! FPS.
 	int m_fps;
+	//! Image capture.
+	QImageCapture * m_imgCapture;
+	//! Map of file names.
+	QMap< int, QString > m_fileNames;
 }; // class Frames
 
 } /* namespace SecurityCam */
