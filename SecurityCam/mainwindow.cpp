@@ -462,7 +462,7 @@ MainWindow::options()
 void
 MainWindow::resolution()
 {
-	ResolutionDialog dlg( d->m_cam, d->m_frames, d->m_frames->cameraFormat(), this );
+	ResolutionDialog dlg( d->m_frames, this );
 
 	if( QDialog::Accepted == dlg.exec() )
 	{

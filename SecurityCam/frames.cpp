@@ -73,6 +73,7 @@ Frames::Frames( const Cfg::Cfg & cfg, QObject * parent )
 
 	connect( m_timer, &QTimer::timeout, this, &Frames::noFramesTimeout );
 	connect( m_secTimer, &QTimer::timeout, this, &Frames::second );
+	connect( this, &QVideoSink::videoFrameChanged, this, &Frames::frame );
 
 	m_secTimer->start();
 }
@@ -422,14 +423,17 @@ Frames::imageCaptured( int id, const QImage & img )
 void
 Frames::stopCam()
 {
-	m_cam->stop();
+	if( m_cam )
+	{
+		m_cam->stop();
 
-	disconnect( m_cam, 0, 0, 0 );
-	m_cam->setParent( nullptr );
+		disconnect( m_cam, 0, 0, 0 );
+		m_cam->setParent( nullptr );
 
-	delete m_cam;
+		delete m_cam;
 
-	m_cam = nullptr;
+		m_cam = nullptr;
+	}
 }
 
 void

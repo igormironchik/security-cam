@@ -90,11 +90,10 @@ ResolutionDialogPrivate::init()
 // ResolutionDialog
 //
 
-ResolutionDialog::ResolutionDialog( const QCameraDevice & cam, Frames * frames,
-	const QCameraFormat & s,
-	QWidget * parent )
+ResolutionDialog::ResolutionDialog( Frames * frames, QWidget * parent )
 	:	QDialog( parent )
-	,	d( new ResolutionDialogPrivate( cam, frames, s, this ) )
+	,	d( new ResolutionDialogPrivate( frames->cameraDevice(),
+			frames, frames->cameraFormat(), this ) )
 {
 	d->init();
 }

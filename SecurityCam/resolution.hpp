@@ -50,9 +50,7 @@ class ResolutionDialog final
 	Q_OBJECT
 
 public:
-	ResolutionDialog( const QCameraDevice & cam, Frames * frames,
-		const QCameraFormat & s,
-		QWidget * parent );
+	ResolutionDialog( Frames * frames, QWidget * parent );
 	~ResolutionDialog() noexcept override;
 
 	//! \return Selected settings.
