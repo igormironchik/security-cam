@@ -20,8 +20,11 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// SecurityCam include.
+// Stock include.
 #include "frames.hpp"
+
+// Qt include.
+#include <QCameraDevice>
 
 // OpenCV include.
 #include <opencv2/core.hpp>
@@ -31,18 +34,24 @@
 #include <QMutexLocker>
 #include <QTimer>
 
+// libyuv include.
+#include <libyuv.h>
+
 
 namespace SecurityCam {
 
 static const int c_noFramesTimeout = 3000;
+
 
 //
 // Frames
 //
 
 Frames::Frames( const Cfg::Cfg & cfg, QObject * parent )
-	:	QAbstractVideoSurface( parent )
+	:	QVideoSink( parent )
+	,	m_cam( nullptr )
 	,	m_counter( 0 )
+	,	m_keyFrameCounter( 0 )
 	,	m_motion( false )
 	,	m_threshold( cfg.threshold() )
 	,	m_rotation( cfg.rotation() )
@@ -61,6 +70,11 @@ Frames::Frames( const Cfg::Cfg & cfg, QObject * parent )
 	connect( m_secTimer, &QTimer::timeout, this, &Frames::second );
 
 	m_secTimer->start();
+}
+
+Frames::~Frames()
+{
+	stopCam();
 }
 
 qreal
@@ -132,46 +146,37 @@ Frames::applyTransform( bool on )
 	}
 }
 
-bool
-Frames::present( const QVideoFrame & frame )
+namespace /* anonymous */ {
+
+//
+// libyuvFormat
+//
+
+libyuv::FourCC libyuvFormat( QVideoFrameFormat::PixelFormat f )
 {
-	if( !isActive() )
-		return false;
-
-	QMutexLocker lock( &m_mutex );
-
-	QVideoFrame f = frame;
-	f.map( QAbstractVideoBuffer::ReadOnly );
-
-	QImage image( f.bits(), f.width(), f.height(), f.bytesPerLine(),
-		QVideoFrame::imageFormatFromPixelFormat( f.pixelFormat() ) );
-
-	f.unmap();
-
-	if( m_counter == c_keyFrameChangesOn )
-		m_counter = 0;
-
-	QImage tmp = ( m_transformApplied ? image.transformed( m_transform )
-		:	image.copy() );
-
-	if( m_counter == 0 )
+	switch( f )
 	{
-		if( !m_keyFrame.isNull() )
-			detectMotion( m_keyFrame, tmp );
+		case QVideoFrameFormat::Format_YUYV :
+			return libyuv::FOURCC_YUYV;
 
-		m_keyFrame = tmp;
+		case QVideoFrameFormat::Format_UYVY :
+			return libyuv::FOURCC_UYVY;
 
-		emit newFrame( m_keyFrame );
+		case QVideoFrameFormat::Format_YUV420P :
+			return libyuv::FOURCC_I420;
+
+		case QVideoFrameFormat::Format_YUV422P :
+			return libyuv::FOURCC_I422;
+
+		case QVideoFrameFormat::Format_NV12 :
+			return libyuv::FOURCC_NV12;
+
+		case QVideoFrameFormat::Format_NV21 :
+			return libyuv::FOURCC_NV21;
+
+		default :
+			return libyuv::FOURCC_ANY;
 	}
-	else if( m_motion )
-		emit newFrame( tmp );
-
-	++m_counter;
-	++m_fps;
-
-	m_timer->start();
-
-	return true;
 }
 
 inline cv::Mat QImageToCvMat( const QImage & inImage )
@@ -212,6 +217,78 @@ inline cv::Mat QImageToCvMat( const QImage & inImage )
 	return cv::Mat();
 }
 
+} /* namespace anonymous */
+
+void
+Frames::frame( const QVideoFrame & frame )
+{
+	QVideoFrame f = frame;
+	f.map( QVideoFrame::ReadOnly );
+
+	if( f.isValid() )
+	{
+		const auto fmt = QVideoFrameFormat::imageFormatFromPixelFormat( f.pixelFormat() );
+
+		QImage image;
+
+		if( fmt != QImage::Format_Invalid )
+			image = QImage( f.bits( 0 ), f.width(), f.height(), f.bytesPerLine( 0 ), fmt );
+		else if( f.pixelFormat() == QVideoFrameFormat::Format_Jpeg )
+			image.loadFromData( f.bits( 0 ), f.mappedBytes( 0 ) );
+		else
+		{
+			const auto format = libyuvFormat( f.pixelFormat() );
+
+			if( format != libyuv::FOURCC_ANY )
+			{
+				std::vector< uint8_t > data( f.width() * f.height() * 4, 0 );
+
+				libyuv::ConvertToARGB( static_cast< uint8_t* > ( f.bits( 0 ) ),
+					f.bytesPerLine( 0 ) * f.height(),
+					&data[ 0 ],
+					f.width() * 4,
+					0, 0,
+					f.width(),
+					f.height(),
+					f.width(),
+					f.height(),
+					libyuv::kRotate0,
+					format );
+
+				image = QImage( static_cast< uchar* > ( &data[ 0 ] ), f.width(), f.height(),
+					f.width() * 4, QImage::Format_ARGB32 ).copy();
+			}
+			else
+				qWarning() << "Unsupported video frame format:" << format;
+		}
+
+		f.unmap();
+
+		if( m_counter == c_keyFrameChangesOn )
+			m_counter = 0;
+
+		QImage tmp = ( m_transformApplied ? image.transformed( m_transform )
+			:	image.copy() );
+
+		if( m_counter == 0 )
+		{
+			if( !m_keyFrame.isNull() )
+				detectMotion( m_keyFrame, tmp );
+
+			m_keyFrame = tmp;
+
+			emit newFrame( m_keyFrame );
+		}
+		else if( m_motion )
+			emit newFrame( tmp );
+
+		++m_counter;
+		++m_fps;
+
+		m_timer->start();
+	}
+}
+
 void
 Frames::detectMotion( const QImage & key, const QImage & image )
 {
@@ -249,18 +326,6 @@ Frames::detectMotion( const QImage & key, const QImage & image )
 	}
 }
 
-QList< QVideoFrame::PixelFormat >
-Frames::supportedPixelFormats( QAbstractVideoBuffer::HandleType type ) const
-{
-	Q_UNUSED( type )
-
-	return QList< QVideoFrame::PixelFormat > ()
-		<< QVideoFrame::Format_ARGB32
-		<< QVideoFrame::Format_ARGB32_Premultiplied
-		<< QVideoFrame::Format_RGB32
-		<< QVideoFrame::Format_RGB24;
-}
-
 void
 Frames::noFramesTimeout()
 {
@@ -281,4 +346,59 @@ Frames::second()
 	m_fps = 0;
 }
 
-} /* namespace SecurityCam */
+void
+Frames::camSettingsChanged()
+{
+	const auto i = m_cam->cameraDevice();
+
+	if( CameraSettings::instance().camName() != i.description() )
+	{
+		stopCam();
+		initCam();
+	}
+	else
+	{
+		m_cam->stop();
+		m_cam->setCameraFormat( CameraSettings::instance().camSettings() );
+		m_cam->start();
+	}
+
+	m_transform = CameraSettings::instance().transform();
+
+	emit xScaleChanged();
+	emit yScaleChanged();
+	emit angleChanged();
+}
+
+void
+Frames::initCam()
+{
+	const auto camDev = CameraSettings::instance().camName();
+
+	if( !camDev.isEmpty() )
+		m_cam = new QCamera( CameraSettings::instance().camInfo( camDev ), this );
+	else
+		m_cam = new QCamera( this );
+
+	m_cam->setFocusMode( QCamera::FocusModeAuto );
+	m_cam->setCameraFormat( CameraSettings::instance().camSettings() );
+	m_capture.setCamera( m_cam );
+	m_capture.setVideoSink( this );
+
+	m_cam->start();
+}
+
+void
+Frames::stopCam()
+{
+	m_cam->stop();
+
+	disconnect( m_cam, 0, 0, 0 );
+	m_cam->setParent( nullptr );
+
+	delete m_cam;
+
+	m_cam = nullptr;
+}
+
+} /* namespace Stock */

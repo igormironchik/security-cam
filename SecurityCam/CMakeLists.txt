@@ -29,7 +29,7 @@ set( SRC main.cpp
 	resolution.ui
 	${CMAKE_CURRENT_BINARY_DIR}/cfg.hpp )
 
-qt5_add_resources( SRC resources.qrc )
+qt6_add_resources( SRC resources.qrc )
 
 if( WIN32 )
 	list( APPEND SRC SecurityCam.rc )
@@ -37,7 +37,8 @@ endif()
 
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/cfgfile
 	${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/args-parser
-	${CMAKE_CURRENT_BINARY_DIR} )
+	${CMAKE_CURRENT_BINARY_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/libyuv/include )
 	
 set_property( SOURCE ${CMAKE_CURRENT_BINARY_DIR}/cfg.hpp PROPERTY SKIP_AUTOGEN ON )
 
@@ -51,5 +52,5 @@ add_executable( SecurityCam.App WIN32 ${SRC} )
 
 add_dependencies( SecurityCam.App cfgfile.generator )
 
-target_link_libraries( SecurityCam.App Qt6::MultimediaWidgets Qt6::Multimedia Qt6::Widgets
+target_link_libraries( SecurityCam.App yuv ${STOCK_JPEG} Qt6::MultimediaWidgets Qt6::Multimedia Qt6::Widgets
 	Qt6::Gui Qt6::Core ${OpenCV_LIBRARIES} )
