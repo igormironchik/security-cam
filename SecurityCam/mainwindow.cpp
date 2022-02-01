@@ -159,6 +159,21 @@ MainWindowPrivate::configureFrames()
 		m_frames->applyTransform( false );
 
 	m_frames->setThreshold( m_cfg.threshold() );
+
+	const auto settings = m_cam.videoFormats();
+
+	for( const auto & s : settings )
+	{
+		if( s.resolution().width() == m_cfg.resolution().width() &&
+			s.resolution().height() == m_cfg.resolution().height() &&
+			qAbs( s.maxFrameRate() - m_cfg.resolution().fps() ) < 0.01 &&
+			s.pixelFormat() != QVideoFrameFormat::Format_Jpeg )
+		{
+			m_frames->setResolution( s );
+
+			break;
+		}
+	}
 }
 
 void
@@ -241,6 +256,8 @@ MainWindowPrivate::initCamera()
 	if( !m_cfg.camera().isEmpty() )
 	{
 		m_frames->initCam( m_cfg.camera() );
+
+		m_cam = m_frames->cameraDevice();
 
 		q->setStatusLabel();
 	}
@@ -436,8 +453,6 @@ MainWindow::options()
 
 		d->startCleanTimer();
 
-		d->configureFrames();
-
 		d->saveCfg();
 
 		if( reinit )
@@ -446,6 +461,8 @@ MainWindow::options()
 
 			d->initCamera();
 		}
+
+		d->configureFrames();
 	}
 	else if( d->m_cfg.camera().isEmpty() )
 	{
@@ -456,6 +473,8 @@ MainWindow::options()
 		d->startCleanTimer();
 
 		d->saveCfg();
+
+		d->configureFrames();
 	}
 }
 
