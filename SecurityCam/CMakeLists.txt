@@ -5,11 +5,11 @@ set( CMAKE_AUTOMOC ON )
 set( CMAKE_AUTORCC ON )
 set( CMAKE_AUTOUIC ON )
 
-find_package(Qt5Core 5.15 REQUIRED)
-find_package(Qt5Widgets 5.15 REQUIRED)
-find_package(Qt5Gui 5.15 REQUIRED)
-find_package(Qt5Multimedia 5.15 REQUIRED)
-find_package(Qt5MultimediaWidgets 5.15 REQUIRED)
+find_package(Qt6Core REQUIRED)
+find_package(Qt6Widgets REQUIRED)
+find_package(Qt6Gui REQUIRED)
+find_package(Qt6Multimedia REQUIRED)
+find_package(Qt6MultimediaWidgets REQUIRED)
 
 add_definitions( -DCFGFILE_QT_SUPPORT )
 add_definitions( -DARGS_QSTRING_BUILD )
@@ -42,7 +42,7 @@ add_custom_target( cfgGen
    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/../3rdparty/cfgfile/generator/cfgfile.generator${CMAKE_EXECUTABLE_SUFFIX} -i ${CMAKE_CURRENT_SOURCE_DIR}/cfg.qtconf -o ${CMAKE_CURRENT_BINARY_DIR}/cfg.hpp
 	)
 
-add_executable( SecurityCam.App ${SRC} )
+add_executable( SecurityCam.App WIN32 ${SRC} )
 
 add_dependencies( cfgGen cfgfile.generator )
 
