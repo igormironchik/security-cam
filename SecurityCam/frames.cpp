@@ -415,7 +415,7 @@ Frames::imageCaptured( int id, const QImage & img )
 {
 	const auto fileName = m_fileNames[ id ];
 	m_fileNames.remove( id );
-	const auto toSave = img.transformed( m_transform );
+	const auto toSave = ( m_transformApplied ? img.transformed( m_transform ) : img );
 	toSave.save( fileName );
 }
 
