@@ -15,6 +15,8 @@ project( SecurityCam )
 
 find_package( OpenCV REQUIRED )
 
-add_subdirectory( 3rdparty )
+add_subdirectory( 3rdparty/cfgfile/generator )
+
+add_subdirectory( 3rdparty/libyuv )
 
 add_subdirectory( SecurityCam )

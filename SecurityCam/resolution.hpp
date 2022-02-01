@@ -25,7 +25,7 @@
 
 // Qt include.
 #include <QDialog>
-#include <QCameraViewfinderSettings>
+#include <QCameraDevice>
 #include <QScopedPointer>
 
 QT_BEGIN_NAMESPACE
@@ -50,13 +50,13 @@ class ResolutionDialog final
 	Q_OBJECT
 
 public:
-	ResolutionDialog( QCamera * cam, Frames * frames,
-		const QCameraViewfinderSettings & s,
+	ResolutionDialog( const QCameraDevice & cam, Frames * frames,
+		const QCameraFormat & s,
 		QWidget * parent );
 	~ResolutionDialog() noexcept override;
 
 	//! \return Selected settings.
-	QCameraViewfinderSettings settings() const;
+	QCameraFormat settings() const;
 
 private:
 	Q_DISABLE_COPY( ResolutionDialog )

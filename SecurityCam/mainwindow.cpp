@@ -38,14 +38,11 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QAction>
-#include <QCameraImageCapture>
 #include <QApplication>
 #include <QCloseEvent>
-#include <QCameraInfo>
 #include <QTimer>
 #include <QTime>
 #include <QDate>
-#include <QTextCodec>
 #include <QTextStream>
 #include <QFile>
 #include <QStatusBar>
@@ -62,9 +59,6 @@ class MainWindowPrivate {
 public:
 	MainWindowPrivate( MainWindow * parent, const QString & cfgFileName )
 		:	m_sysTray( Q_NULLPTR )
-		,	m_cam( Q_NULLPTR )
-		,	m_currCamInfo( Q_NULLPTR )
-		,	m_capture( Q_NULLPTR )
 		,	m_isRecording( false )
 		,	m_takeImageInterval( 1500 )
 		,	m_takeImagesYetInterval( 3 * 1000 )
@@ -99,12 +93,8 @@ public:
 
 	//! System tray icon.
 	QSystemTrayIcon * m_sysTray;
-	//! Camera.
-	QCamera * m_cam;
-	//! Current camera info.
-	QScopedPointer< QCameraInfo > m_currCamInfo;
-	//! Capture.
-	QCameraImageCapture * m_capture;
+	//! Camera device.
+	QCameraDevice m_cam;
 	//! Recording?
 	bool m_isRecording;
 	//! Interval between images.
@@ -203,7 +193,6 @@ MainWindowPrivate::readCfg()
 				Cfg::tag_Cfg< cfgfile::qstring_trait_t > tag;
 
 				QTextStream stream( &file );
-				stream.setCodec( QTextCodec::codecForName( "UTF-8" ) );
 
 				cfgfile::read_cfgfile( tag, stream, m_cfgFileName );
 
@@ -251,47 +240,9 @@ MainWindowPrivate::initCamera()
 {
 	if( !m_cfg.camera().isEmpty() )
 	{
-		auto infos = QCameraInfo::availableCameras();
+		m_frames->initCam( m_cfg.camera() );
 
-		if( !infos.isEmpty() )
-		{
-			QCameraInfo info;
-
-			foreach( auto & i, infos )
-			{
-				if( i.deviceName() == m_cfg.camera() )
-				{
-					info = i;
-
-					m_currCamInfo.reset( new QCameraInfo( info ) );
-
-					break;
-				}
-			}
-
-			if( !info.isNull() )
-			{
-				m_cam = new QCamera( info, q );
-
-				QObject::connect( m_cam, &QCamera::statusChanged,
-					q, &MainWindow::camStatusChanged );
-
-				m_cam->setViewfinder( m_frames );
-
-				m_capture = new QCameraImageCapture( m_cam, q );
-
-				m_cam->setCaptureMode( QCamera::CaptureStillImage );
-
-				q->setStatusLabel();
-
-				m_cam->start();
-			}
-			else
-			{
-				QTimer::singleShot( c_cameraReinitTimeout, q,
-					[&] () { q->cameraError(); } );
-			}
-		}
+		q->setStatusLabel();
 	}
 }
 
@@ -383,8 +334,6 @@ MainWindowPrivate::initUi()
 		q, &MainWindow::takeImage );
 	MainWindow::connect( m_cleanTimer, &QTimer::timeout,
 		q, &MainWindow::clean );
-	MainWindow::connect( m_frames, &Frames::noFrames,
-		q, &MainWindow::cameraError );
 	MainWindow::connect( m_frames, &Frames::fps,
 		q, &MainWindow::fps, Qt::QueuedConnection );
 }
@@ -406,7 +355,6 @@ MainWindowPrivate::saveCfg()
 			Cfg::tag_Cfg< cfgfile::qstring_trait_t > tag( m_cfg );
 
 			QTextStream stream( &file );
-			stream.setCodec( QTextCodec::codecForName( "UTF-8" ) );
 
 			cfgfile::write_cfgfile( tag, stream );
 
@@ -434,20 +382,7 @@ MainWindowPrivate::stopCamera()
 {
 	m_stopTimer->stop();
 
-	if( m_cam )
-	{
-		m_cam->stop();
-
-		m_capture->deleteLater();
-
-		m_capture = Q_NULLPTR;
-
-		m_cam->deleteLater();
-
-		m_cam = Q_NULLPTR;
-
-		m_currCamInfo.reset();
-	}
+	m_frames->stopCam();
 }
 
 
@@ -478,7 +413,7 @@ MainWindow::quit()
 void
 MainWindow::options()
 {
-	Options opts( d->m_cfg, d->m_currCamInfo.data(), this );
+	Options opts( d->m_cfg, d->m_frames->cameraDevice(), this );
 
 	connect( d->m_frames, &Frames::imgDiff,
 		&opts, &Options::imgDiff, Qt::QueuedConnection );
@@ -527,21 +462,17 @@ MainWindow::options()
 void
 MainWindow::resolution()
 {
-	ResolutionDialog dlg( d->m_cam, d->m_frames, d->m_cam->viewfinderSettings(), this );
+	ResolutionDialog dlg( d->m_cam, d->m_frames, d->m_frames->cameraFormat(), this );
 
 	if( QDialog::Accepted == dlg.exec() )
 	{
-		const QCameraViewfinderSettings s = dlg.settings();
+		const auto s = dlg.settings();
 
-		d->m_cam->stop();
-
-		d->m_cam->setViewfinderSettings( s );
-
-		d->m_cam->start();
+		d->m_frames->setResolution( s );
 
 		d->m_cfg.resolution().width() = s.resolution().width();
 		d->m_cfg.resolution().height() = s.resolution().height();
-		d->m_cfg.resolution().fps() = s.maximumFrameRate();
+		d->m_cfg.resolution().fps() = s.maxFrameRate();
 
 		d->saveCfg();
 	}
@@ -561,63 +492,39 @@ MainWindow::sysTrayActivated( QSystemTrayIcon::ActivationReason reason )
 void
 MainWindow::motionDetected()
 {
-	if( d->m_cam )
+	if( !d->m_isRecording )
 	{
-		if( !d->m_isRecording )
-		{
-			d->m_isRecording = true;
+		d->m_isRecording = true;
 
-			takeImage();
+		takeImage();
 
-			d->m_timer->start( d->m_takeImageInterval );
-		}
-		else
-			d->m_stopTimer->stop();
+		d->m_timer->start( d->m_takeImageInterval );
 	}
+	else
+		d->m_stopTimer->stop();
 }
 
 void
 MainWindow::noMoreMotion()
 {
-	if( d->m_cam )
-	{
-		if( d->m_isRecording )
-			d->m_stopTimer->start( d->m_takeImagesYetInterval );
-	}
+	if( d->m_isRecording )
+		d->m_stopTimer->start( d->m_takeImagesYetInterval );
 }
 
 void
 MainWindow::stopRecording()
 {
-	if( d->m_cam )
-	{
-		d->m_stopTimer->stop();
+	d->m_stopTimer->stop();
 
-		d->m_timer->stop();
+	d->m_timer->stop();
 
-		d->m_isRecording = false;
-	}
+	d->m_isRecording = false;
 }
 
 void
 MainWindow::takeImage()
 {
-	if( d->m_capture )
-	{
-		const QDateTime current = QDateTime::currentDateTime();
-
-		QDir dir( d->m_cfg.folder() );
-
-		const QString path = dir.absolutePath() +
-			current.date().toString( QLatin1String( "/yyyy/MM/dd/" ) );
-
-		dir.mkpath( path );
-
-		d->m_cam->searchAndLock();
-
-		d->m_capture->capture( path +
-			current.toString( QLatin1String( "hh.mm.ss" ) ) );
-	}
+	d->m_frames->takeImage( d->m_cfg.folder() );
 }
 
 void
@@ -735,51 +642,6 @@ MainWindow::clean()
 }
 
 void
-MainWindow::cameraError()
-{
-	d->stopCamera();
-
-	d->m_view->draw( QImage() );
-
-	QTimer::singleShot( c_cameraReinitTimeout, this,
-		[&] () { d->initCamera(); } );
-}
-
-void
-MainWindow::camStatusChanged( QCamera::Status st )
-{
-	if( st == QCamera::LoadedStatus )
-	{
-		const auto settings = d->m_cam->supportedViewfinderSettings();
-
-		QCameraViewfinderSettings toApply;
-
-		for( const auto & s : settings )
-		{
-			if( s.resolution().width() == d->m_cfg.resolution().width() &&
-				s.resolution().height() == d->m_cfg.resolution().height() &&
-				qAbs( s.maximumFrameRate() - d->m_cfg.resolution().fps() ) <= 0.001 )
-			{
-				toApply = s;
-
-				break;
-			}
-		}
-
-		if( !toApply.isNull() )
-		{
-			d->m_cam->stop();
-
-			d->m_cam->setViewfinderSettings( toApply );
-
-			setStatusLabel();
-
-			d->m_cam->start();
-		}
-	}
-}
-
-void
 MainWindow::fps( int v )
 {
 	d->m_fps = v;
@@ -790,19 +652,12 @@ MainWindow::fps( int v )
 void
 MainWindow::setStatusLabel()
 {
-	if( d->m_cam )
-	{
-		const auto s = d->m_cam->viewfinderSettings();
+	const auto s = d->m_frames->cameraFormat();
 
-		d->m_status->setText( tr( "%1x%2 | %3 fps" )
-			.arg( s.resolution().width() )
-			.arg( s.resolution().height() )
-			.arg( d->m_fps ) );
-	}
-	else
-	{
-		d->m_status->setText( tr( "Camera is not ready." ) );
-	}
+	d->m_status->setText( tr( "%1x%2 | %3 fps" )
+		.arg( s.resolution().width() )
+		.arg( s.resolution().height() )
+		.arg( d->m_fps ) );
 }
 
 } /* namespace SecurityCam */

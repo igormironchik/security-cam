@@ -22,7 +22,7 @@
 
 // Qt include.
 #include <QCamera>
-#include <QRegExp>
+#include <QRegularExpression>
 
 // SecurityCam include.
 #include "resolution.hpp"
@@ -38,8 +38,8 @@ namespace SecurityCam {
 
 class ResolutionDialogPrivate {
 public:
-	ResolutionDialogPrivate( QCamera * cam, Frames * frames,
-		const QCameraViewfinderSettings & s,
+	ResolutionDialogPrivate( const QCameraDevice & cam, Frames * frames,
+		const QCameraFormat & s,
 		ResolutionDialog * parent )
 		:	m_cam( cam )
 		,	m_frames( frames )
@@ -52,11 +52,11 @@ public:
 	void init();
 
 	//! Camera.
-	QCamera * m_cam;
+	QCameraDevice m_cam;
 	//! Frames.
 	Frames * m_frames;
 	//! Settings.
-	QCameraViewfinderSettings m_settings;
+	QCameraFormat m_settings;
 	//! Ui.
 	Ui::ResolutionDialog m_ui;
 	//! Parent.
@@ -68,19 +68,19 @@ ResolutionDialogPrivate::init()
 {
 	m_ui.setupUi( q );
 
-	const auto settings = m_cam->supportedViewfinderSettings();
+	const auto settings = m_cam.videoFormats();
 
 	for( const auto & s : settings )
 	{
 		const QString data = QString::number( s.resolution().width() ) +
 			QLatin1Char( 'x' ) + QString::number( s.resolution().height() ) +
-			QLatin1Char( ' ' ) + QString::number( s.maximumFrameRate(), 'f', 0 ) +
+			QLatin1Char( ' ' ) + QString::number( s.maxFrameRate(), 'f', 0 ) +
 			QLatin1String( " fps" );
 
 		m_ui.m_res->addItem( data );
 
 		if( s.resolution() == m_settings.resolution() &&
-			s.maximumFrameRate() == m_settings.maximumFrameRate() )
+			s.maxFrameRate() == m_settings.maxFrameRate() )
 				m_ui.m_res->setCurrentIndex( m_ui.m_res->count() - 1 );
 	}
 }
@@ -90,8 +90,8 @@ ResolutionDialogPrivate::init()
 // ResolutionDialog
 //
 
-ResolutionDialog::ResolutionDialog( QCamera * cam, Frames * frames,
-	const QCameraViewfinderSettings & s,
+ResolutionDialog::ResolutionDialog( const QCameraDevice & cam, Frames * frames,
+	const QCameraFormat & s,
 	QWidget * parent )
 	:	QDialog( parent )
 	,	d( new ResolutionDialogPrivate( cam, frames, s, this ) )
@@ -103,36 +103,33 @@ ResolutionDialog::~ResolutionDialog() noexcept
 {
 }
 
-QCameraViewfinderSettings
+QCameraFormat
 ResolutionDialog::settings() const
 {
-	QCameraViewfinderSettings res;
-
-	const auto settings = d->m_cam->supportedViewfinderSettings();
+	const auto settings = d->m_cam.videoFormats();
 
 	const auto data = d->m_ui.m_res->currentText();
 
-	static const QRegExp r( "(\\d+)x(\\d+)\\s+(\\d*\\.?\\d*)\\s+fps" );
+	static const QRegularExpression r( "^(\\d+)x(\\d+)\\s+(\\d*\\.?\\d*)\\s+fps$" );
 
-	r.exactMatch( data );
+	QRegularExpressionMatch match = r.match( data );
 
-	const auto width = r.cap( 1 ).toInt();
-	const auto height = r.cap( 2 ).toInt();
-	const auto fps = r.cap( 3 ).toDouble();
+	const auto width = match.captured( 1 ).toInt();
+	const auto height = match.captured( 2 ).toInt();
+	const auto fps = match.captured( 3 ).toDouble();
 
 	for( const auto & s : settings )
 	{
 		if( s.resolution().width() == width &&
 			s.resolution().height() == height &&
-			qAbs( s.maximumFrameRate() - fps ) < 0.001 )
+			qAbs( s.maxFrameRate() - fps ) < 0.001 &&
+			s.pixelFormat() != QVideoFrameFormat::Format_Jpeg )
 		{
-			res = s;
-
-			break;
+			return s;
 		}
 	}
 
-	return res;
+	return settings.at( 0 );
 }
 
 } /* namespace SecurityCam */

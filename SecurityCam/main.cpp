@@ -29,7 +29,7 @@
 #include <QStandardPaths>
 
 // Args include.
-#include <Args/all.hpp>
+#include <args-parser/all.hpp>
 
 
 int main( int argc, char ** argv )

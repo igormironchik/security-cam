@@ -9,7 +9,6 @@ find_package(Qt6Core REQUIRED)
 find_package(Qt6Widgets REQUIRED)
 find_package(Qt6Gui REQUIRED)
 find_package(Qt6Multimedia REQUIRED)
-find_package(Qt6MultimediaWidgets REQUIRED)
 
 add_definitions( -DCFGFILE_QT_SUPPORT )
 add_definitions( -DARGS_QSTRING_BUILD )
@@ -52,5 +51,5 @@ add_executable( SecurityCam.App WIN32 ${SRC} )
 
 add_dependencies( SecurityCam.App cfgfile.generator )
 
-target_link_libraries( SecurityCam.App yuv ${STOCK_JPEG} Qt6::MultimediaWidgets Qt6::Multimedia Qt6::Widgets
+target_link_libraries( SecurityCam.App yuv ${CAM_JPEG} Qt6::Multimedia Qt6::Widgets
 	Qt6::Gui Qt6::Core ${OpenCV_LIBRARIES} )

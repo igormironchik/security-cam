@@ -87,13 +87,23 @@ public:
 	//! Apply new transformations.
 	void applyTransform( bool on = true );
 
-private slots:
-	//! Camera settings changed.
-	void camSettingsChanged();
+	//! \return Current format of the camera.
+	QCameraFormat cameraFormat() const;
+
+	//! \return Current camera device.
+	QCameraDevice cameraDevice() const;
+
+public slots:
 	//! Init camera.
-	void initCam();
+	void initCam( const QString & name );
 	//! Stop camera.
 	void stopCam();
+	//! Set resolution.
+	void setResolution( const QCameraFormat & fmt );
+	//! Take image.
+	void takeImage( const QString & dirName );
+
+private slots:
 	//! Video frame changed.
 	void frame( const QVideoFrame & frame );
 	//! No frames timeout.

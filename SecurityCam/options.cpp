@@ -25,13 +25,13 @@
 #include "ui_options.h"
 
 // Qt include.
-#include <QCameraInfo>
 #include <QGroupBox>
 #include <QComboBox>
 #include <QToolButton>
 #include <QLineEdit>
 #include <QStandardPaths>
 #include <QFileDialog>
+#include <QMediaDevices>
 
 
 namespace SecurityCam {
@@ -49,27 +49,24 @@ public:
 	}
 
 	//! Init.
-	void init( QCameraInfo * camInfo );
+	void init( const QCameraDevice & dev );
 
 	//! Ui.
 	Ui::Options m_ui;
 	//! Cfg.
 	Cfg::Cfg m_cfg;
 	//! Cameras.
-	QList< QCameraInfo > m_cameras;
+	QList< QCameraDevice > m_cameras;
 	//! Parent.
 	Options * q;
 }; // class OptionsPrivate
 
 void
-OptionsPrivate::init( QCameraInfo * camInfo )
+OptionsPrivate::init( const QCameraDevice & dev )
 {
 	m_ui.setupUi( q );
 
-	m_cameras = QCameraInfo::availableCameras();
-
-	if( camInfo && !m_cameras.contains( *camInfo ) )
-		m_cameras.push_back( *camInfo );
+	m_cameras = QMediaDevices::videoInputs();
 
 	if( !m_cameras.isEmpty() )
 	{
@@ -79,7 +76,7 @@ OptionsPrivate::init( QCameraInfo * camInfo )
 		{
 			m_ui.m_camera->addItem( c.description() );
 
-			if( c.deviceName() == m_cfg.camera() )
+			if( c.description() == m_cfg.camera() )
 				m_ui.m_camera->setCurrentIndex( i );
 
 			++i;
@@ -131,11 +128,11 @@ OptionsPrivate::init( QCameraInfo * camInfo )
 // Options
 //
 
-Options::Options( const Cfg::Cfg & cfg, QCameraInfo * camInfo, QWidget * parent )
+Options::Options( const Cfg::Cfg & cfg, const QCameraDevice & dev, QWidget * parent )
 	:	QDialog( parent )
 	,	d( new OptionsPrivate( this, cfg ) )
 {
-	d->init( camInfo );
+	d->init( dev );
 }
 
 Options::~Options() noexcept
@@ -146,7 +143,7 @@ Cfg::Cfg
 Options::cfg() const
 {
 	d->m_cfg.set_camera( d->m_cameras.at(
-		d->m_ui.m_camera->currentIndex() ).deviceName() );
+		d->m_ui.m_camera->currentIndex() ).description() );
 	d->m_cfg.set_folder( d->m_ui.m_dir->text() );
 	d->m_cfg.set_storeDays( d->m_ui.m_clean->isChecked() ?
 		d->m_ui.m_storeDays->value() : 0 );

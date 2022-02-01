@@ -40,7 +40,7 @@ if (JPEG_FOUND)
   include_directories( ${JPEG_INCLUDE_DIR} )
   #target_link_libraries( yuvconvert ${JPEG_LIBRARY} )
   add_definitions( -DHAVE_JPEG )
-  set( STOCK_JPEG ${JPEG_LIBRARY} PARENT_SCOPE )
+  set( CAM_JPEG ${JPEG_LIBRARY} PARENT_SCOPE )
 endif()
 
 if(TEST)

@@ -33,6 +33,9 @@
 // Qt include.
 #include <QMutexLocker>
 #include <QTimer>
+#include <QMediaDevices>
+#include <QDateTime>
+#include <QDir>
 
 // libyuv include.
 #include <libyuv.h>
@@ -144,6 +147,24 @@ Frames::applyTransform( bool on )
 
 		m_transform = QTransform();
 	}
+}
+
+QCameraFormat
+Frames::cameraFormat() const
+{
+	if( m_cam )
+		return m_cam->cameraFormat();
+	else
+		return QCameraFormat();
+}
+
+QCameraDevice
+Frames::cameraDevice() const
+{
+	if( m_cam )
+		return m_cam->cameraDevice();
+	else
+		return QCameraDevice();
 }
 
 namespace /* anonymous */ {
@@ -347,45 +368,31 @@ Frames::second()
 }
 
 void
-Frames::camSettingsChanged()
+Frames::initCam( const QString & name )
 {
-	const auto i = m_cam->cameraDevice();
+	const auto cameras = QMediaDevices::videoInputs();
 
-	if( CameraSettings::instance().camName() != i.description() )
+	if( !cameras.isEmpty() )
 	{
-		stopCam();
-		initCam();
-	}
-	else
-	{
-		m_cam->stop();
-		m_cam->setCameraFormat( CameraSettings::instance().camSettings() );
+		QCameraDevice dev = cameras.at( 0 );
+
+		for( const auto & cameraInfo : cameras )
+		{
+			if( cameraInfo.description() == name )
+			{
+				dev = cameraInfo;
+				break;
+			}
+		}
+
+		m_cam = new QCamera( dev, this );
+
+		m_cam->setFocusMode( QCamera::FocusModeAuto );
+		m_capture.setCamera( m_cam );
+		m_capture.setVideoSink( this );
+
 		m_cam->start();
 	}
-
-	m_transform = CameraSettings::instance().transform();
-
-	emit xScaleChanged();
-	emit yScaleChanged();
-	emit angleChanged();
-}
-
-void
-Frames::initCam()
-{
-	const auto camDev = CameraSettings::instance().camName();
-
-	if( !camDev.isEmpty() )
-		m_cam = new QCamera( CameraSettings::instance().camInfo( camDev ), this );
-	else
-		m_cam = new QCamera( this );
-
-	m_cam->setFocusMode( QCamera::FocusModeAuto );
-	m_cam->setCameraFormat( CameraSettings::instance().camSettings() );
-	m_capture.setCamera( m_cam );
-	m_capture.setVideoSink( this );
-
-	m_cam->start();
 }
 
 void
@@ -399,6 +406,33 @@ Frames::stopCam()
 	delete m_cam;
 
 	m_cam = nullptr;
+}
+
+void
+Frames::setResolution( const QCameraFormat & fmt )
+{
+	if( m_cam )
+	{
+		m_cam->stop();
+		m_cam->setCameraFormat( fmt );
+		m_cam->start();
+	}
+}
+
+void
+Frames::takeImage( const QString & dirName )
+{
+	const QDateTime current = QDateTime::currentDateTime();
+
+	QDir dir( dirName );
+
+	const QString path = dir.absolutePath() +
+		current.date().toString( QLatin1String( "/yyyy/MM/dd/" ) );
+
+	dir.mkpath( path );
+
+	const auto fileName = path +
+		current.toString( QLatin1String( "hh.mm.ss" ) );
 }
 
 } /* namespace Stock */

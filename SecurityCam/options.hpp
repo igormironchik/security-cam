@@ -26,13 +26,10 @@
 // Qt include.
 #include <QDialog>
 #include <QScopedPointer>
+#include <QCameraDevice>
 
 // SecurityCam include.
 #include "cfg.hpp"
-
-QT_BEGIN_NAMESPACE
-class QCameraInfo;
-QT_END_NAMESPACE
 
 
 namespace SecurityCam {
@@ -50,7 +47,7 @@ class Options final
 	Q_OBJECT
 
 public:
-	Options( const Cfg::Cfg & cfg, QCameraInfo * camInfo, QWidget * parent );
+	Options( const Cfg::Cfg & cfg, const QCameraDevice & dev, QWidget * parent );
 	~Options() noexcept override;
 
 	//! \return Cfg.
