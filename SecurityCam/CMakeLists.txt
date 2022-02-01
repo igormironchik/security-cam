@@ -26,7 +26,8 @@ set( SRC main.cpp
 	view.cpp
 	resolution.cpp
 	resolution.hpp
-	resolution.ui )
+	resolution.ui
+	${CMAKE_CURRENT_BINARY_DIR}/cfg.hpp )
 
 qt5_add_resources( SRC resources.qrc )
 
@@ -35,18 +36,20 @@ if( WIN32 )
 endif()
 
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/cfgfile
-	${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/Args
+	${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/args-parser
 	${CMAKE_CURRENT_BINARY_DIR} )
+	
+set_property( SOURCE ${CMAKE_CURRENT_BINARY_DIR}/cfg.hpp PROPERTY SKIP_AUTOGEN ON )
 
-add_custom_target( cfgGen
-   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/../3rdparty/cfgfile/generator/cfgfile.generator${CMAKE_EXECUTABLE_SUFFIX} -i ${CMAKE_CURRENT_SOURCE_DIR}/cfg.qtconf -o ${CMAKE_CURRENT_BINARY_DIR}/cfg.hpp
-	)
+add_custom_command( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/cfg.hpp
+	PRE_BUILD
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/../3rdparty/cfgfile/generator/${CMAKE_CFG_INTDIR}/cfgfile.generator${CMAKE_EXECUTABLE_SUFFIX} -i cfg.qtconf -o ${CMAKE_CURRENT_BINARY_DIR}/cfg.hpp
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 add_executable( SecurityCam.App WIN32 ${SRC} )
 
-add_dependencies( cfgGen cfgfile.generator )
+add_dependencies( SecurityCam.App cfgfile.generator )
 
-add_dependencies( SecurityCam.App cfgGen )
-
-target_link_libraries( SecurityCam.App Qt5::MultimediaWidgets Qt5::Multimedia Qt5::Widgets
-	Qt5::Gui Qt5::Core ${OpenCV_LIBRARIES} )
+target_link_libraries( SecurityCam.App Qt6::MultimediaWidgets Qt6::Multimedia Qt6::Widgets
+	Qt6::Gui Qt6::Core ${OpenCV_LIBRARIES} )
