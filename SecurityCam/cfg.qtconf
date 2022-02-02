@@ -28,6 +28,12 @@
                     {name fps}
                     {required}
                 }
+
+				{tagScalar
+					{valueType QString}
+					{name format}
+					{required}
+				}
             }
 
 

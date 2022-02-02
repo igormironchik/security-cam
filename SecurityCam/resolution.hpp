@@ -38,6 +38,24 @@ namespace SecurityCam {
 class Frames;
 
 //
+// pixelFormatToString
+//
+
+//! \return String representation of pixel format.
+QString
+pixelFormatToString( QVideoFrameFormat::PixelFormat f );
+
+
+//
+// stringToPixelFormat
+//
+
+//! \return String representation of pixel format.
+QVideoFrameFormat::PixelFormat
+stringToPixelFormat( const QString & s );
+
+
+//
 // ResolutionDialog
 //
 

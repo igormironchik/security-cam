@@ -167,7 +167,7 @@ MainWindowPrivate::configureFrames()
 		if( s.resolution().width() == m_cfg.resolution().width() &&
 			s.resolution().height() == m_cfg.resolution().height() &&
 			qAbs( s.maxFrameRate() - m_cfg.resolution().fps() ) < 0.01 &&
-			s.pixelFormat() != QVideoFrameFormat::Format_Jpeg )
+			s.pixelFormat() == stringToPixelFormat( m_cfg.resolution().format() ) )
 		{
 			m_frames->setResolution( s );
 
@@ -492,6 +492,7 @@ MainWindow::resolution()
 		d->m_cfg.resolution().width() = s.resolution().width();
 		d->m_cfg.resolution().height() = s.resolution().height();
 		d->m_cfg.resolution().fps() = s.maxFrameRate();
+		d->m_cfg.resolution().set_format( pixelFormatToString( s.pixelFormat() ) );
 
 		d->saveCfg();
 	}
