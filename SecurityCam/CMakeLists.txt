@@ -26,6 +26,9 @@ set( SRC main.cpp
 	resolution.cpp
 	resolution.hpp
 	resolution.ui
+	license_dialog.cpp
+	license_dialog.hpp
+	license_dialog.ui
 	${CMAKE_CURRENT_BINARY_DIR}/cfg.hpp )
 
 qt6_add_resources( SRC resources.qrc )
