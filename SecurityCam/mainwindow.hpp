@@ -69,6 +69,8 @@ private slots:
 	void about();
 	//! About Qt.
 	void aboutQt();
+	//! Licenses.
+	void licenses();
 	//! Clean.
 	void clean();
 	//! FPS.
