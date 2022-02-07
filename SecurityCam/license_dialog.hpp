@@ -27,7 +27,7 @@
 #include <QWidget>
 #include <QVBoxLayout>
 
-// Stock include.
+// SecurityCam include.
 #include "ui_license_dialog.h"
 
 
