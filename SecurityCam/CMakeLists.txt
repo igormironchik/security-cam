@@ -26,9 +26,6 @@ set( SRC main.cpp
 	resolution.cpp
 	resolution.hpp
 	resolution.ui
-	license_dialog.cpp
-	license_dialog.hpp
-	license_dialog.ui
 	${CMAKE_CURRENT_BINARY_DIR}/cfg.hpp )
 
 qt6_add_resources( SRC resources.qrc )
@@ -39,6 +36,7 @@ endif()
 
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/cfgfile
 	${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/args-parser
+	${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/widgets/include
 	${CMAKE_CURRENT_BINARY_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/libyuv/include )
 	
@@ -54,5 +52,5 @@ add_executable( SecurityCam.App WIN32 ${SRC} )
 
 add_dependencies( SecurityCam.App cfgfile.generator )
 
-target_link_libraries( SecurityCam.App yuv ${CAM_JPEG} Qt6::Multimedia Qt6::Widgets
+target_link_libraries( SecurityCam.App yuv ${CAM_JPEG} widgets Qt6::Multimedia Qt6::Widgets
 	Qt6::Gui Qt6::Core ${OpenCV_LIBRARIES} )

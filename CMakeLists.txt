@@ -19,4 +19,6 @@ add_subdirectory( 3rdparty/cfgfile/generator )
 
 add_subdirectory( 3rdparty/libyuv )
 
+add_subdirectory( 3rdparty/widgets )
+
 add_subdirectory( SecurityCam )

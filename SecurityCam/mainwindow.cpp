@@ -27,7 +27,6 @@
 #include "frames.hpp"
 #include "view.hpp"
 #include "resolution.hpp"
-#include "license_dialog.hpp"
 
 // cfgfile include.
 #include <cfgfile/all.hpp>
@@ -48,6 +47,9 @@
 #include <QFile>
 #include <QStatusBar>
 #include <QLabel>
+
+// Widgets include.
+#include <Widgets/LicenseDialog>
 
 
 namespace SecurityCam {
@@ -580,7 +582,8 @@ void
 MainWindow::licenses()
 {
 	LicenseDialog msg( this );
-	msg.addLicense( QStringLiteral( "<p>Copyright 2011 The <b>LibYuv</b> Project Authors. All rights reserved.\n</p>"
+	msg.addLicense( QStringLiteral( "LibYuv" ),
+		QStringLiteral( "<p>Copyright 2011 The <b>LibYuv</b> Project Authors. All rights reserved.\n</p>"
 		"\n"
 		"<p>Redistribution and use in source and binary forms, with or without "
 		"modification, are permitted provided that the following conditions are "
@@ -609,7 +612,8 @@ MainWindow::licenses()
 		"THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT "
 		"(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE "
 		"OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>" ) );
-	msg.addLicense( QStringLiteral( "<p><b>The Oxygen Icon Theme</b>\n\n</p>"
+	msg.addLicense( QStringLiteral( "The Oxygen Icon Theme" ),
+		QStringLiteral( "<p><b>The Oxygen Icon Theme</b>\n\n</p>"
 		"<p>Copyright (C) 2007 Nuno Pinheiro &lt;nuno@oxygen-icons.org&gt;\n</p>"
 		"<p>Copyright (C) 2007 David Vignoni &lt;david@icon-king.com&gt;\n</p>"
 		"<p>Copyright (C) 2007 David Miller &lt;miller@oxygen-icons.org&gt;\n</p>"
