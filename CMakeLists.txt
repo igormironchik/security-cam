@@ -19,6 +19,7 @@ add_subdirectory( 3rdparty/cfgfile/generator )
 
 add_subdirectory( 3rdparty/libyuv )
 
+set( BUILD_EXAMPLES OFF CACHE INTERNAL "" FORCE )
 add_subdirectory( 3rdparty/widgets )
 
 add_subdirectory( SecurityCam )
