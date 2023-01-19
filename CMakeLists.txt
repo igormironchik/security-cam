@@ -17,7 +17,7 @@ find_package( OpenCV REQUIRED )
 
 add_subdirectory( 3rdparty/cfgfile/generator )
 
-set( BUILD_EXAMPLES OFF CACHE INTERNAL "" FORCE )
+set( BUILD_WIDGETS_EXAMPLES OFF CACHE INTERNAL "" FORCE )
 add_subdirectory( 3rdparty/widgets )
 
 add_subdirectory( SecurityCam )
