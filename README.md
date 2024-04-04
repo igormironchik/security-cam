@@ -1,6 +1,6 @@
 # About
 
-![SecurityCam Logo](SecurityCam/logo/logotype/logotype.svg.png)
+![SecurityCam Logo](src/logo/logotype/logotype.svg.png)
 
 Simple security USB camera.
 
