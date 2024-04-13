@@ -13,8 +13,6 @@ SET( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 project( SecurityCam )
 
-find_package( OpenCV REQUIRED )
-
 add_subdirectory( 3rdparty/cfgfile/generator )
 
 add_subdirectory( src )

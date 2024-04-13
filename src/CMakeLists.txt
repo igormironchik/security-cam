@@ -54,4 +54,4 @@ add_executable( SecurityCam.App WIN32 ${SRC} )
 add_dependencies( SecurityCam.App cfgfile.generator )
 
 target_link_libraries( SecurityCam.App PUBLIC Qt6::Multimedia Qt6::Widgets
-	Qt6::Gui Qt6::Core ${OpenCV_LIBRARIES} )
+	Qt6::Gui Qt6::Core )

@@ -10,10 +10,6 @@
 // Qt include.
 #include <QCameraDevice>
 
-// OpenCV include.
-#include <opencv2/core.hpp>
-#include <opencv2/core/core_c.h>
-
 // Qt include.
 #include <QMutexLocker>
 #include <QTimer>
@@ -151,48 +147,6 @@ Frames::cameraDevice() const
 		return QCameraDevice();
 }
 
-namespace /* anonymous */ {
-
-inline cv::Mat QImageToCvMat( const QImage & inImage )
-{
-	switch ( inImage.format() )
-	{
-		case QImage::Format_ARGB32:
-		case QImage::Format_ARGB32_Premultiplied:
-		{
-			cv::Mat mat( inImage.height(), inImage.width(),
-				CV_8UC4,
-				const_cast< uchar* >( inImage.bits() ),
-				static_cast< size_t >( inImage.bytesPerLine() ) );
-
-			return mat;
-		}
-
-		case QImage::Format_RGB32:
-		case QImage::Format_RGB888:
-		{
-			QImage swapped;
-
-			if( inImage.format() == QImage::Format_RGB32 )
-				swapped = inImage.convertToFormat( QImage::Format_RGB888 );
-
-			swapped = inImage.rgbSwapped();
-
-			return cv::Mat( swapped.height(), swapped.width(),
-				CV_8UC3,
-				const_cast< uchar* >( swapped.bits() ),
-				static_cast< size_t >( swapped.bytesPerLine() ) ).clone();
-		}
-
-		default:
-			break;
-	}
-
-	return cv::Mat();
-}
-
-} /* namespace anonymous */
-
 void
 Frames::frame( const QVideoFrame & frame )
 {
@@ -234,23 +188,39 @@ void
 Frames::detectMotion( const QImage & key, const QImage & image )
 {
 	bool detected = false;
-
-	try {
-		const cv::Mat A = QImageToCvMat( key );
-		const cv::Mat B = QImageToCvMat( image );
-
+	
+	if( key.size() == image.size() )
+	{
+		double errorL2 = 0.0;
+		
 		// Calculate the L2 relative error between images.
-		const double errorL2 = cv::norm( A, B, CV_L2 );
+		for( int x = 0; x < key.width(); ++x )
+		{
+			for( int y = 0; y < key.height(); ++y )
+			{
+				const auto p1 = key.pixelColor( x, y );
+				const auto p2 = image.pixelColor( x, y );
+				
+				const auto r = p1.redF() - p2.redF();
+				const auto r2 = r * r;
+				
+				const auto g = p1.greenF() - p2.greenF();
+				const auto g2 = g * g;
+				
+				const auto b = p1.blueF() - p2.blueF();
+				const auto b2 = b * b;
+				
+				errorL2 += std::sqrt( r2 + g2 + b2 );
+			}
+		}
+		
 		// Convert to a reasonable scale, since L2 error is summed across
 		// all pixels of the image.
-		const double similarity = errorL2 / (double)( A.rows * A.cols );
-
+		const double similarity = errorL2 / (double)( key.width() * key.height() );
+	
 		detected = similarity > m_threshold;
-
+	
 		emit imgDiff( similarity );
-	}
-	catch( const cv::Exception & )
-	{
 	}
 
 	if( m_motion && !detected )
