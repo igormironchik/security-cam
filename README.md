@@ -1,6 +1,3 @@
-[![License: GPL](https://img.shields.io/badge/license-GPLv3-blue
-)](https://opensource.org/license/GPL-3.0)
-
 > [!IMPORTANT]
 >
 > This project is not supported anymore. But can be reopened if interest will
@@ -9,7 +6,7 @@
 
 # About
 
-![SecurityCam Logo](src/logo/logotype/logotype.svg.png)
+<img src="src/logo/logotype/logotype.svg.png" width="20%" align="right">
 
 Simple security USB camera.
 
